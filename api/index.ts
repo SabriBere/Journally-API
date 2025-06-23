@@ -12,9 +12,13 @@ server.use(morgan("dev")); //configuración básica para desarrollo
 
 server.use("/api", routes);
 
+//agregar middleware de notFound
+
 function startServer() {
     server.listen(process.env.PORT, () => {
         console.log("Server listen", process.env.PORT);
+        console.log("Enviroment", process.env.NODE_ENV);
+        console.log("API version", process.env.npm_package_version);
     });
 }
 
