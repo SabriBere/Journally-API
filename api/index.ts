@@ -12,12 +12,15 @@ server.use(morgan("dev")); //configuración básica para desarrollo
 
 server.use("/api", routes);
 
-//agregar middleware de notFound
+// middleware de notFound
+server.use((req, res, next) => {
+    res.status(404).json({ message: "Endpoint not found" });
+});
 
 function startServer() {
     server.listen(process.env.PORT, () => {
-        console.log("Server listen", process.env.PORT);
         console.log("Enviroment", process.env.NODE_ENV);
+        console.log("Server listen", process.env.PORT);
         console.log("API version", process.env.npm_package_version);
     });
 }
