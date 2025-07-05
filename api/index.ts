@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cors from "cors";
 import routes from "./routes/routes";
 import notFound from "./middlewares/notFound";
+import swaggerJSDoc from "swagger-jsdoc";
 
 const server = express();
 server.use(helmet());
@@ -12,6 +13,8 @@ server.use(cors()); //configuración wild card
 server.use(morgan("dev")); //configuración básica para desarrollo
 
 //configuración de swagger - documentación de end points
+const specs = swaggerJSDoc(options);
+// server.use("/swagger", SwaggerUi)
 
 server.use("/api", routes);
 
