@@ -1,4 +1,4 @@
-const options = {
+const swaggerConfig = {
     definition: {
         openapi: "3.0.0",
         info: {
@@ -12,6 +12,8 @@ const options = {
                 description: "Local server",
             },
         ],
-        apis:[`./api/swagger/*ts`]
     },
+    apis: [`./api/swagger/*ts`],
 };
+
+export default swaggerConfig;
