@@ -1,15 +1,62 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id     Int        @id @default(autoincrement())
+  user_name   String     @unique
+  email       String     @unique
+  password    String
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+
+  // Relaciones
+  settings    Setting?
+  collections Collection[]
+  posts       Post[]
+}
+
+model Setting {
+  setting_id Int      @id @default(autoincrement())
+  theme      String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // FK
+  user_id Int  @unique
+  user    User @relation(fields: [user_id], references: [user_id])
+}
+
+model Collection {
+  collection_id   Int      @id @default(autoincrement())
+  collection_name String
+  title           String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // FK
+  user_id Int  // relación con User
+  user    User @relation(fields: [user_id], references: [user_id])
+
+  posts   Post[]
+}
+
+model Post {
+  post_id     Int      @id @default(autoincrement())
+  title       String
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // FK
+  user_id      Int
+  user         User       @relation(fields: [user_id], references: [user_id])
+
+  collection_id Int
+  collection    Collection @relation(fields: [collection_id], references: [collection_id])
 }
