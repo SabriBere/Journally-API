@@ -3,6 +3,7 @@ import morgan from "morgan"; //combinar con winston o pino para logs de servidor
 import helmet from "helmet";
 import cors from "cors";
 import routes from "./routes/routes";
+import prisma from "./db/db";
 import notFound from "./middlewares/notFound";
 import Swagger from "swagger-jsdoc";
 import SwaggerUi from "swagger-ui-express";
@@ -23,7 +24,15 @@ server.use("/api", routes);
 // middleware de notFound
 server.use(notFound);
 
-function startServer() {
+async function startServer() {
+    try {
+        await prisma.$connect();
+        console.log("✅ Conectado a la base de datos con Prisma");
+    } catch (error) {
+        await prisma.$disconnect()
+        console.error("❌ Error conectando a la base de datos:", error);
+    }
+
     server.listen(process.env.PORT, () => {
         console.log("Enviroment", process.env.NODE_ENV);
         console.log("Server listen", process.env.PORT);
