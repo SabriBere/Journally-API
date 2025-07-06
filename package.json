@@ -9,6 +9,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "dev": "node --env-file=.env.dev --watch --watch-preserve-output -r ts-node/register api/index.ts",
+        "generate": "npx prisma generate",
+        "migrate": "npx prisma migrate dev --name init",
         "build": "tsc"
     },
     "author": "Sabrina Demetrio",
