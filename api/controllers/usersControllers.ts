@@ -11,9 +11,10 @@ class UserControllers {
     static async login(req: Request, res: Response) {
         const { status, error, data } = await UserService.getUser(req.body);
         if (error) {
-            //agregar 401 por credenciales invalidas
             if (status === 401) {
                 return res.status(401).json({ data });
+            } else if (status === 404) {
+                return res.status(404).json({ data });
             } else {
                 return res.status(500).json({ error: true, data });
             }
