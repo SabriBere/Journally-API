@@ -1,5 +1,7 @@
 import prisma from "../db/db";
+import bcrypt from "bcrypt";
 
+const SALT_ROUNDS = 10;
 class UserService {
     static async createUser(body: {
         email: string;
@@ -7,13 +9,14 @@ class UserService {
         user_name?: string;
     }) {
         const { email, password, user_name } = body;
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
         try {
             const user = await prisma.user.create({
                 data: {
                     email: email,
-                    password: password, //encriptar
-                    user_name: email.split("@")[0], // ejemplo: username a partir del email
+                    password: hashedPassword,
+                    user_name: email.split("@")[0],
                 },
             });
             return { status: 201, error: false, data: user };
@@ -27,19 +30,29 @@ class UserService {
             const userFinded = await prisma.user.findFirst({
                 where: {
                     email: body.email,
-                    password: body.password,
                 },
             });
-            
-            //validación de la contraseña
+
             if (!userFinded) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Usuario no encontrado",
+                };
+            }
+
+            const isMatch = await bcrypt.compare(
+                body.password,
+                userFinded.password
+            );
+
+            if (!isMatch) {
                 return {
                     status: 401,
                     error: true,
-                    data: "Usuario no valido o registrado",
+                    data: "Credenciales invalidas",
                 };
             }
-            
 
             return {
                 status: 201,
