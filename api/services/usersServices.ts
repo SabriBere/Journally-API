@@ -16,10 +16,14 @@ class UserService {
                 data: {
                     email: email,
                     password: hashedPassword,
-                    user_name: email.split("@")[0],
+                    user_name: `${user_name}`,
                 },
             });
-            return { status: 201, error: false, data: user };
+            return {
+                status: 201,
+                error: false,
+                data: { userName: user.user_name, email: user.email },
+            };
         } catch (error: any) {
             return { status: 500, error: true, data: error.message };
         }
