@@ -1,10 +1,23 @@
 import { Request, Response } from "express";
+import { validationResult } from "express-validator";
 import UserService from "../services/usersServices";
 
 class UserControllers {
     static async create(req: Request, res: Response) {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: true, data: errors.array() });
+        }
+
         const { status, error, data } = await UserService.createUser(req.body);
-        // if (error) return res.status(404).json({ error });
+        if (error) {
+            if (status === 400) {
+                return res.status(400).json({ data });
+            } else {
+                return res.status(500).json({ error: true, data });
+            }
+        }
         res.status(200).json({ data });
     }
 
