@@ -9,4 +9,6 @@ router.post("/login", UserControllers.login);
 
 router.put("/update", validateNewsPass, UserControllers.updatePassword);
 
+router.delete("/delete/:id", UserControllers.deleteUser)
+
 export default router;
