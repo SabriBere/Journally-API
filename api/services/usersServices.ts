@@ -74,6 +74,62 @@ class UserService {
             };
         }
     }
+
+    static async changePass(body: { id: number; newPass: string }) {
+        const { id, newPass } = body;
+
+        try {
+            const userFind = await prisma.user.findUnique({
+                where: {
+                    user_id: id,
+                },
+            });
+
+            if (!userFind) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Usuario no encontrado",
+                };
+            }
+
+            const isSamePass = await bcrypt.compare(
+                body.newPass,
+                userFind.password
+            );
+
+            if (isSamePass) {
+                return {
+                    status: 400,
+                    error: false,
+                    data: "Ingrese una contraseña diferente a la anterior",
+                };
+            }
+
+            const newHashPass = await bcrypt.hash(newPass, SALT_ROUNDS);
+
+            await prisma.user.update({
+                where: {
+                    user_id: id,
+                },
+                data: {
+                    password: newHashPass,
+                },
+            });
+
+            return {
+                status: 201,
+                error: false,
+                data: "Actualización exitosa",
+            };
+        } catch (error: any) {
+            return {
+                status: 500,
+                error: true,
+                data: error.message,
+            };
+        }
+    }
 }
 
 export default UserService;
