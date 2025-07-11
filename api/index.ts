@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import morgan from "morgan"; //combinar con winston o pino para logs de servidor
 import helmet from "helmet";
 import cors from "cors";
@@ -14,6 +15,7 @@ server.use(helmet());
 server.use(express.json());
 server.use(cors()); //configuración wild card
 server.use(morgan("dev")); //configuración básica para desarrollo
+server.use(cookieParser())
 
 //configuración de swagger - documentación de end points
 const docs = Swagger(swaggerConfig);
