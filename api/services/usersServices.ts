@@ -138,6 +138,49 @@ class UserService {
             };
         }
     }
+
+    static async eraserUser(id: number) {
+        try {
+            const userExists = await prisma.user.findUnique({
+                where: { user_id: id },
+            });
+
+            if (!userExists) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Usuario no encontrado",
+                };
+            }
+
+            //cuando tenga posteos creados debería ser en cascada el delete
+            const deletedUser = await prisma.user.delete({
+                where: {
+                    user_id: id,
+                },
+            });
+
+            if (!deletedUser) {
+                return {
+                    status: 400,
+                    error: true,
+                    data: "Error al eliminar usuario",
+                };
+            }
+
+            return {
+                status: 204,
+                error: false,
+                data: "Usuario eliminado con exito",
+            };
+        } catch (error: any) {
+            return {
+                status: 500,
+                error: true,
+                data: error.message,
+            };
+        }
+    }
 }
 
 export default UserService;
