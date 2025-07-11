@@ -12,3 +12,11 @@ export const validateUser = [
         .isLength({ min: 8 })
         .withMessage("La contraseña debe tener al menos 8 caracteres"),
 ];
+
+export const validateNewsPass = [
+    body("user_id").isInt({ min: 1 }),
+
+    body("password")
+        .isLength({ min: 8 })
+        .withMessage("La contraseña debe tener al menos 8 caracteres"),
+];
