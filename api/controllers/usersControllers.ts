@@ -49,6 +49,20 @@ class UserControllers {
         }
         res.status(201).json({ data });
     }
+
+    static async deleteUser(req: Request, res: Response) {
+        const id = Number(req.query.id);
+        const { status, error, data } = await UserService.eraserUser(id);
+
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
+            } else {
+                return res.status(500).json({ error: true, data });
+            }
+        }
+        res.status(204).json({ data });
+    }
 }
 
 export default UserControllers;
