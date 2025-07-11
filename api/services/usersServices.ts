@@ -78,8 +78,16 @@ class UserService {
     static async changePass(body: { id: number; newPass: string }) {
         const { id, newPass } = body;
 
+        if (!newPass) {
+            return {
+                status: 400,
+                error: true,
+                data: "Faltan datos",
+            };
+        }
+
         try {
-            const userFind = await prisma.user.findUnique({
+            const userFind = await prisma.user.findFirst({
                 where: {
                     user_id: id,
                 },
@@ -94,8 +102,8 @@ class UserService {
             }
 
             const isSamePass = await bcrypt.compare(
-                body.newPass,
-                userFind.password
+                newPass,
+                userFind?.password
             );
 
             if (isSamePass) {
@@ -110,7 +118,7 @@ class UserService {
 
             await prisma.user.update({
                 where: {
-                    user_id: id,
+                    user_id: userFind?.user_id,
                 },
                 data: {
                     password: newHashPass,
