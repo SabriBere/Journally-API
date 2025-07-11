@@ -7,4 +7,6 @@ router.post("/register", validateUser, UserControllers.create);
 
 router.post("/login", UserControllers.login);
 
+router.put("/update", UserControllers.updatePassword)
+
 export default router;

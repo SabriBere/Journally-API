@@ -34,6 +34,21 @@ class UserControllers {
         }
         res.status(201).json({ data });
     }
+
+    static async updatePassword(req: Request, res: Response) {
+        const { status, error, data } = await UserService.changePass(req.body);
+
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
+            } else if (status === 400) {
+                return res.status(400).json({ data });
+            } else {
+                return res.status(500).json({ error: true, data });
+            }
+        }
+        res.status(201).json({ data });
+    }
 }
 
 export default UserControllers;
