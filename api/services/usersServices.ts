@@ -62,6 +62,7 @@ class UserService {
                 status: 201,
                 error: false,
                 data: {
+                    userId: userFinded.user_id,
                     user: userFinded.email,
                     userName: userFinded.user_name,
                 },
