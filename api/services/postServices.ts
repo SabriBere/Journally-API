@@ -11,6 +11,18 @@ class PostServices {
     ) {
         const { title, description } = body;
         try {
+            const userExists = await prisma.user.findUnique({
+                where: { user_id: userId },
+            });
+
+            if (!userExists) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "El usuario especificado no existe.",
+                };
+            }
+
             const collectionExists = await prisma.collection.findUnique({
                 where: { collection_id: collectionId },
             });
@@ -54,6 +66,18 @@ class PostServices {
     ) {
         try {
             const { title, description } = body;
+
+            const userExists = await prisma.user.findUnique({
+                where: { user_id: userId },
+            });
+
+            if (!userExists) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "El usuario especificado no existe",
+                };
+            }
 
             const postCreated = await prisma.post.create({
                 data: {
