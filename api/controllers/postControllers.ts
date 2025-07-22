@@ -18,7 +18,7 @@ class PostControllers {
             collectionId,
             req.body
         );
-        
+
         if (error) {
             if (status === 404) {
                 return res.status(404).json({ data });
@@ -42,9 +42,30 @@ class PostControllers {
         if (error) {
             if (status === 404) {
                 return res.status(404).json({ data });
+            } else {
+                return res.status(500).json({ data });
             }
         }
         res.status(201).json({ data });
+    }
+
+    static async assingColletion(req: Request, res: Response) {
+        const postId = Number(req.query.postId);
+        const userId = Number(req.query.userId);
+
+        const { status, error, data } = await PostServices.putInCollection(
+            postId,
+            userId
+        );
+
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
+            } else {
+                return res.status(500).json([data]);
+            }
+        }
+        res.status(200).json({ data });
     }
 
     static async allPost(req: Request, res: Response) {
