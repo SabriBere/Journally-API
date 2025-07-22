@@ -18,6 +18,7 @@ class PostControllers {
             collectionId,
             req.body
         );
+        
         if (error) {
             if (status === 404) {
                 return res.status(404).json({ data });
