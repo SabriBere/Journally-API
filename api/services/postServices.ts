@@ -1,5 +1,43 @@
 import prisma from "../db/db";
 class PostServices {
+    //require de tener las colecciones creadas previamente
+    static async create(userId: number, collectionId: number, body: any) {
+        const { title, description } = body;
+        try {
+            const collectionExists = await prisma.collection.findUnique({
+                where: { collection_id: collectionId },
+            });
+
+            if (!collectionExists) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "La colección especificada no existe.",
+                };
+            }
+
+            const postCreated = await prisma.post.create({
+                data: {
+                    title: title,
+                    description: description,
+                    user: {
+                        connect: { user_id: userId },
+                    },
+                    collection: {
+                        connect: { collection_id: collectionId },
+                    },
+                },
+            });
+            return {
+                status: 201,
+                error: false,
+                data: postCreated,
+            };
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
+        }
+    }
+
     static async getAllPost(id: number) {
         try {
             const userExists = await prisma.user.findUnique({

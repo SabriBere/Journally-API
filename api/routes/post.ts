@@ -1,6 +1,12 @@
 import { Router } from "express";
+import { validatePost } from "../middlewares/postValidation";
 import postControllers from "../controllers/postControllers";
 const router = Router();
+
+//crear post dentro de una colección para un usuario
+router.post("/create", validatePost, postControllers.createPost);
+
+//editar un post
 
 //buscar un post por id
 
