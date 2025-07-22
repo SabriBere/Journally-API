@@ -10,12 +10,15 @@ router.post("/create", validatePost, PostControllers.createPost);
 router.post("/createOne", validatePost, PostControllers.onePost);
 
 //asignar un post a una colección, si no la tiene
+router.put("/updateOne", PostControllers.assingColletion)
 
-//editar un post
+//editar un post, cambiar titulo o descripción
+// router.put("/update", PostControllers.assingColletion)
 
 //buscar un post por id
+// router.get("/findOne", PostControllers.assingColletion)
 
-//todos los post de un usuario
+//todos los post de un usuario, con colecciones incluidas
 router.get("/", PostControllers.allPost);
 
 export default router;

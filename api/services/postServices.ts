@@ -100,6 +100,60 @@ class PostServices {
         }
     }
 
+    //depende de que haya una colección existente para probar bien
+    static async putInCollection(
+        postId: number,
+        collectionId: number
+    ) {
+        try {
+            //buscar por id el post
+            const postExists = await prisma.post.findUnique({
+                where: { post_id: postId },
+            });
+
+            if (!postExists) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "El post buscado no existe",
+                };
+            }
+
+            const collectionExists = await prisma.collection.findUnique({
+                where: {
+                    collection_id: collectionId,
+                },
+            });
+
+            if (!collectionExists) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Colección no encontrada",
+                };
+            }
+
+            await prisma.post.update({
+                where: {
+                    post_id: postId,
+                },
+                data: {
+                    collection: {
+                        connect: { collection_id: collectionId },
+                    },
+                },
+            });
+
+            return {
+                status: 200,
+                error: false,
+                data: "Post asignado a la colección exitosamente",
+            };
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
+        }
+    }
+
     static async getAllPost(id: number) {
         try {
             const userExists = await prisma.user.findUnique({
