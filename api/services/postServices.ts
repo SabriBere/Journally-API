@@ -1,5 +1,5 @@
-class EntriesServices {
-    static async getAll() {
+class PostServices {
+    static async getAllPost() {
         try {
             return { error: false, data: "Hola" };
         } catch (error: any) {
@@ -8,4 +8,4 @@ class EntriesServices {
     }
 }
 
-export default EntriesServices;
+export default PostServices;

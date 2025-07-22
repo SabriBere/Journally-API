@@ -1,9 +1,9 @@
 import { Router } from "express";
 const router = Router();
-import entriesRounter from "./entries";
+import postRounter from "./post";
 import usersRouter from "./users";
 
-router.use("/entries", entriesRounter);
+router.use("/post", postRounter);
 router.use("/users", usersRouter);
 
 export default router;
