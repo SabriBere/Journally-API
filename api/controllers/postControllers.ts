@@ -27,6 +27,25 @@ class PostControllers {
         res.status(201).json({ data });
     }
 
+    static async onePost(req: Request, res: Response) {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: true, data: errors.array() });
+        }
+
+        const userId = Number(req.query.userId);
+        const { status, error, data } =
+            await PostServices.createWithOutCollection(userId, req.body);
+
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
+            }
+        }
+        res.status(201).json({ data });
+    }
+
     static async allPost(req: Request, res: Response) {
         const id = Number(req.query.id);
         const { status, error, data } = await PostServices.getAllPost(id);

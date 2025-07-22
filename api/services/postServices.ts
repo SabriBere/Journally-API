@@ -1,7 +1,14 @@
 import prisma from "../db/db";
 class PostServices {
     //require de tener las colecciones creadas previamente
-    static async create(userId: number, collectionId: number, body: any) {
+    static async create(
+        userId: number,
+        collectionId: number,
+        body: {
+            title: string;
+            description: string;
+        }
+    ) {
         const { title, description } = body;
         try {
             const collectionExists = await prisma.collection.findUnique({
@@ -28,6 +35,37 @@ class PostServices {
                     },
                 },
             });
+            return {
+                status: 201,
+                error: false,
+                data: postCreated,
+            };
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
+        }
+    }
+
+    static async createWithOutCollection(
+        userId: number,
+        body: {
+            title: string;
+            description: string;
+        }
+    ) {
+        try {
+            const { title, description } = body;
+
+            const postCreated = await prisma.post.create({
+                data: {
+                    title: title,
+                    description: description,
+                    user: {
+                        connect: { user_id: userId },
+                    },
+                    collection: {},
+                },
+            });
+
             return {
                 status: 201,
                 error: false,
