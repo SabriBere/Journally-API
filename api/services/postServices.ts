@@ -130,7 +130,7 @@ class PostServices {
                 };
             }
 
-            await prisma.post.update({
+            const inCollection = await prisma.post.update({
                 where: {
                     post_id: postId,
                 },
@@ -144,7 +144,7 @@ class PostServices {
             return {
                 status: 200,
                 error: false,
-                data: "Post asignado a la colección exitosamente",
+                data: inCollection,
             };
         } catch (error: any) {
             return { status: 500, error: true, data: error.message };
@@ -174,6 +174,45 @@ class PostServices {
             };
         } catch (error: any) {
             return { status: 200, error: true, data: error.message };
+        }
+    }
+
+    static async editPost(
+        postId: number,
+        body: {
+            title: string;
+            description: string;
+        }
+    ) {
+        try {
+            const dataToUpdate: any = {};
+
+            const { title, description } = body;
+
+            if (title !== "") dataToUpdate.title = title;
+            if (description !== "") dataToUpdate.description = description;
+
+            if (Object.keys(dataToUpdate).length === 0) {
+                return {
+                    status: 400,
+                    error: true,
+                    data: "No se proporcionó ningún campo para actualizar.",
+                };
+            }
+
+            const updatedPost = await prisma.post.update({
+                where: {
+                    post_id: postId,
+                },
+                data: dataToUpdate,
+            });
+            return {
+                status: 200,
+                error: false,
+                data: updatedPost,
+            };
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
         }
     }
 
