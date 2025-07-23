@@ -21,4 +21,7 @@ router.get("/findOne", PostControllers.findPost)
 //todos los post de un usuario, con colecciones incluidas
 router.get("/", PostControllers.allPost);
 
+//eliminar un post de un usuario
+router.delete("/deletePost", PostControllers.deletePost)
+
 export default router;
