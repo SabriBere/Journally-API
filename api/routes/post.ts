@@ -16,7 +16,7 @@ router.put("/updateOne", PostControllers.assingColletion)
 // router.put("/update", PostControllers.assingColletion)
 
 //buscar un post por id
-// router.get("/findOne", PostControllers.assingColletion)
+router.get("/findOne", PostControllers.findPost)
 
 //todos los post de un usuario, con colecciones incluidas
 router.get("/", PostControllers.allPost);

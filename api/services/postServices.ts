@@ -101,10 +101,7 @@ class PostServices {
     }
 
     //depende de que haya una colección existente para probar bien
-    static async putInCollection(
-        postId: number,
-        collectionId: number
-    ) {
+    static async putInCollection(postId: number, collectionId: number) {
         try {
             //buscar por id el post
             const postExists = await prisma.post.findUnique({
@@ -151,6 +148,32 @@ class PostServices {
             };
         } catch (error: any) {
             return { status: 500, error: true, data: error.message };
+        }
+    }
+
+    static async onePost(postId: number) {
+        try {
+            const postFound = await prisma.post.findFirst({
+                where: {
+                    post_id: postId,
+                },
+            });
+
+            if (!postFound) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Post no encontrado",
+                };
+            }
+
+            return {
+                status: 200,
+                error: false,
+                data: postFound,
+            };
+        } catch (error: any) {
+            return { status: 200, error: true, data: error.message };
         }
     }
 
