@@ -217,7 +217,6 @@ class PostServices {
         }
     }
 
-    //falta que este paginado, buscar por nombre y ordenar
     static async getAllPost(
         id: number,
         page: number,
@@ -283,6 +282,36 @@ class PostServices {
             };
         } catch (error: any) {
             return { error: true, data: error.message };
+        }
+    }
+
+    static async eraserPost(postId: number) {
+        try {
+            const deletedPost = await prisma.post.delete({
+                where: {
+                    post_id: postId,
+                },
+            });
+
+            if (!deletedPost) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Post no encontrado",
+                };
+            }
+
+            return {
+                status: 204,
+                error: false,
+                data: deletedPost,
+            };
+        } catch (error: any) {
+            return {
+                status: 500,
+                error: true,
+                data: error.message,
+            };
         }
     }
 }
