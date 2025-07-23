@@ -57,6 +57,7 @@ class PostServices {
         }
     }
 
+    //no requiere tener una colección creada
     static async createWithOutCollection(
         userId: number,
         body: {
@@ -180,8 +181,8 @@ class PostServices {
     static async editPost(
         postId: number,
         body: {
-            title: string;
-            description: string;
+            title?: string;
+            description?: string;
         }
     ) {
         try {
@@ -216,8 +217,20 @@ class PostServices {
         }
     }
 
-    static async getAllPost(id: number) {
+    //falta que este paginado, buscar por nombre y ordenar
+    static async getAllPost(
+        id: number,
+        page: number,
+        searchText?: string,
+        orderField?: any,
+        orderDirection?: string
+    ) {
+        console.log("orderField", orderField, "orderDirection", orderDirection);
+
         try {
+            const pageSize: number = 20;
+            const skip = (page - 1) * pageSize;
+
             const userExists = await prisma.user.findUnique({
                 where: { user_id: id },
             });
@@ -230,17 +243,44 @@ class PostServices {
                 };
             }
 
+            const totalItems = await prisma.post.count({
+                where: {
+                    user_id: id,
+                    title: {
+                        contains: searchText,
+                        mode: "insensitive",
+                    },
+                },
+                orderBy: {
+                    [orderField]: orderDirection,
+                },
+            });
+            const totalPages = Math.ceil(totalItems / pageSize);
+
             const userPost = await prisma.post.findMany({
                 where: {
                     user_id: id,
+                    title: {
+                        contains: searchText,
+                        mode: "insensitive",
+                    },
                 },
                 include: {
                     collection: true,
-                    user: true,
                 },
+                orderBy: {
+                    [orderField]: orderDirection,
+                },
+                skip,
+                take: pageSize,
             });
 
-            return { status: 200, error: false, data: userPost };
+            //ver cómo devolver toda la data necesaria para el frontend
+            return {
+                status: 200,
+                error: false,
+                data: { userPost, totalPages },
+            };
         } catch (error: any) {
             return { error: true, data: error.message };
         }
