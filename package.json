@@ -4,7 +4,7 @@
     },
     "name": "journallyappback",
     "version": "0.1.0",
-    "description": "",
+    "description": "Backend API for Journally an application built with Node.js, Express, Prisma, and TypeScript.",
     "main": "index.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -15,6 +15,19 @@
     },
     "author": "Sabrina Demetrio",
     "license": "MIT",
+    "keywords": [
+        "journaling",
+        "api",
+        "rest-api",
+        "nodejs",
+        "express",
+        "prisma",
+        "typescript",
+        "bcrypt",
+        "backend",
+        "postgresql",
+        "typescript-api"
+    ],
     "dependencies": {
         "@prisma/client": "^6.10.1",
         "bcrypt": "^6.0.0",
