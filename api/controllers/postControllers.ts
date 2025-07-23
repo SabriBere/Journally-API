@@ -68,6 +68,22 @@ class PostControllers {
         res.status(200).json({ data });
     }
 
+    static async findPost(req: Request, res: Response) {
+        const postId = Number(req.query.postId);
+        
+        const { status, error, data } = await PostServices.onePost(postId);
+
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
+            } else {
+                return res.status(500).json({ data });
+            }
+        }
+
+        return res.status(200).json({ data });
+    }
+
     static async allPost(req: Request, res: Response) {
         const id = Number(req.query.id);
         const { status, error, data } = await PostServices.getAllPost(id);
