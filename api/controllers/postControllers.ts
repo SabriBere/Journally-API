@@ -86,7 +86,10 @@ class PostControllers {
 
     static async updatePost(req: Request, res: Response) {
         const postId = Number(req.query.postId);
-        const { status, error, data } = await PostServices.editPost(postId, req.body);
+        const { status, error, data } = await PostServices.editPost(
+            postId,
+            req.body
+        );
         if (error) {
             if (status === 404) {
                 return res.status(404).json({ data });
@@ -100,7 +103,18 @@ class PostControllers {
 
     static async allPost(req: Request, res: Response) {
         const id = Number(req.query.id);
-        const { status, error, data } = await PostServices.getAllPost(id);
+        const page = Number(req.query.page) || 1;
+        const searchText = req.query.searchText as string | undefined;
+        const orderField = req.query.orderField as string | undefined;
+        const orderDirection = req.query.orderDirection as string | undefined;
+
+        const { status, error, data } = await PostServices.getAllPost(
+            id,
+            page,
+            searchText,
+            orderField,
+            orderDirection
+        );
         if (error) {
             if (status === 404) {
                 return res.status(404).json({ data });
