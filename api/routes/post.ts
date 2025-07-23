@@ -13,7 +13,7 @@ router.post("/createOne", validatePost, PostControllers.onePost);
 router.put("/updateOne", PostControllers.assingColletion)
 
 //editar un post, cambiar titulo o descripción
-// router.put("/update", PostControllers.assingColletion)
+router.put("/updatePost", PostControllers.updatePost)
 
 //buscar un post por id
 router.get("/findOne", PostControllers.findPost)
