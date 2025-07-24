@@ -7,13 +7,14 @@ const router = Router()
 router.post("/createCollection", CollectionsControllers.createCollection)
 
 //obtener el listado de una colección, paginados y con filtros
+router.get("/", CollectionsControllers.listOfCollections)
 
 //actualizar el nombre de una colección
 router.put("/updateCollection", CollectionsControllers.updateName)
 
-//eliminar un post de una colección
+//eliminar una colección
 router.delete("/deteleCollection", CollectionsControllers.deleteCollection)
 
-//eliminar una colección
+
 
 export default router;
