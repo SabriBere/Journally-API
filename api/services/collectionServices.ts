@@ -28,6 +28,37 @@ class ColletionServices {
             return { status: 500, error: true, data: error.message };
         }
     }
+
+    static async update(body: { title: string; collectionId: number }) {
+        try {
+            const { title, collectionId } = body;
+
+            const updatedCollection = await prisma.collection.update({
+                where: {
+                    collection_id: collectionId,
+                },
+                data: {
+                    title: title,
+                },
+            });
+
+            if (!updatedCollection) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Colección no encontrada",
+                };
+            }
+
+            return {
+                status: 200,
+                error: false,
+                data: updatedCollection,
+            };
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
+        }
+    }
 }
 
 export default ColletionServices;
