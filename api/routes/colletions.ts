@@ -7,7 +7,9 @@ const router = Router()
 router.post("/createCollection", CollectionsControllers.createCollection)
 
 //obtener el listado de una colección, paginados y con filtros
-router.get("/", CollectionsControllers.listOfCollections)
+router.get("/allCollections", CollectionsControllers.listOfCollections)
+
+//obtener una colección por id
 
 //actualizar el nombre de una colección
 router.put("/updateCollection", CollectionsControllers.updateName)
