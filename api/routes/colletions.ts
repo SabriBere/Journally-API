@@ -4,7 +4,7 @@ import CollectionsControllers from "../controllers/collectionsControllers";
 const router = Router()
 
 //crear una colección
-router.get("/createCollection", CollectionsControllers.createCollection)
+router.post("/createCollection", CollectionsControllers.createCollection)
 
 //obtener el listado de una colección
 

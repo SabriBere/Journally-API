@@ -1,16 +1,31 @@
 import prisma from "../db/db";
 
 class ColletionServices {
-    static async create(body:any){
+    static async create(body: {
+        collectionName: string;
+        title: string;
+        userId: number;
+    }) {
         try {
-            
+            const { collectionName, title, userId } = body;
+
+            const collectionCreated = await prisma.collection.create({
+                data: {
+                    collection_name: collectionName,
+                    title: title,
+                    user: {
+                        connect: { user_id: userId },
+                    },
+                },
+            });
+
             return {
                 status: 201,
                 error: true,
-                data: ""
-            }
-        } catch (error:any) {
-            return { status: 500, error: true, data: error.message}
+                data: collectionCreated,
+            };
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
         }
     }
 }
