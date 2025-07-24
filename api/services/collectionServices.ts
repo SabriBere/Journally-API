@@ -94,6 +94,8 @@ class ColletionServices {
             };
         }
     }
+
+    static async allCollections() {}
 }
 
 export default ColletionServices;

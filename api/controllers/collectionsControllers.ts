@@ -47,6 +47,11 @@ class CollectionsControllers {
 
         res.status(204).json({ data });
     }
+
+    //continuar
+    static async listOfCollections(req: Request, res: Response){
+
+    }
 }
 
 export default CollectionsControllers;
