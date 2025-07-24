@@ -59,6 +59,41 @@ class ColletionServices {
             return { status: 500, error: true, data: error.message };
         }
     }
+
+    static async eraserCollection(collectionId: number) {
+        try {
+            const collection = await prisma.collection.findUnique({
+                where: {
+                    collection_id: collectionId,
+                },
+            });
+
+            if (!collection) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "No se encontró la colección",
+                };
+            }
+            const deleteCollection = await prisma.collection.delete({
+                where: {
+                    collection_id: collectionId,
+                },
+            });
+
+            return {
+                status: 204,
+                error: false,
+                data: deleteCollection,
+            };
+        } catch (error: any) {
+            return {
+                status: 500,
+                error: true,
+                data: error.message,
+            };
+        }
+    }
 }
 
 export default ColletionServices;
