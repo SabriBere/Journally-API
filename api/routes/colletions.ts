@@ -11,6 +11,9 @@ router.post("/createCollection", CollectionsControllers.createCollection)
 //actualizar el nombre de una colección
 router.put("/updateCollection", CollectionsControllers.updateName)
 
+//eliminar un post de una colección
+router.delete("/deteleCollection", CollectionsControllers.deleteCollection)
+
 //eliminar una colección
 
 export default router;
