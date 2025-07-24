@@ -95,7 +95,43 @@ class ColletionServices {
         }
     }
 
-    static async allCollections() {}
+    static async allCollections(id: number, page: number, searchText?: string) {
+        try {
+            const pageSize: number = 20;
+            const skip = (page - 1) * pageSize;
+
+            const totalItems = await prisma.collection.count({
+                where: {
+                    user_id: id,
+                    title: {
+                        contains: searchText,
+                        mode: "insensitive",
+                    },
+                },
+            });
+
+            const totalPages = Math.ceil(totalItems / pageSize);
+
+            const collectionList = await prisma.collection.findMany({
+                where: {
+                    title: {
+                        contains: searchText,
+                        mode: "insensitive",
+                    },
+                },
+                skip,
+                take: pageSize,
+            });
+
+            return {
+                status: 200,
+                error: false,
+                data: { collectionList, totalPages },
+            };
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
+        }
+    }
 }
 
 export default ColletionServices;

@@ -49,8 +49,25 @@ class CollectionsControllers {
     }
 
     //continuar
-    static async listOfCollections(req: Request, res: Response){
+    static async listOfCollections(req: Request, res: Response) {
+        const id = Number(req.query.id);
+        const page = Number(req.query.page) || 1;
+        const searchText = req.query.searchText as string | undefined;
 
+        const { status, error, data } = await ColletionServices.allCollections(
+            id,
+            page,
+            searchText
+        );
+
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
+            }
+            return res.status(500).json({ data });
+        }
+
+        res.status(200).json({ data });
     }
 }
 
