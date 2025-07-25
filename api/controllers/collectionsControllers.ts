@@ -48,7 +48,6 @@ class CollectionsControllers {
         res.status(204).json({ data });
     }
 
-    //continuar
     static async listOfCollections(req: Request, res: Response) {
         const id = Number(req.query.id);
         const page = Number(req.query.page) || 1;
@@ -72,6 +71,23 @@ class CollectionsControllers {
         }
 
         res.status(200).json({ data });
+    }
+
+    static async oneCollection(req: Request, res: Response) {
+        const collectionId = Number(req.query.id);
+
+        const { status, error, data } =
+            await ColletionServices.findCollection(collectionId);
+
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
+            } else {
+                return res.status(500).json({ data });
+            }
+        }
+
+        return res.status(200).json({ data });
     }
 }
 
