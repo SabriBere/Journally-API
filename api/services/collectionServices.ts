@@ -144,6 +144,39 @@ class ColletionServices {
             return { status: 500, error: true, data: error.message };
         }
     }
+
+    static async findCollection(collectionId: number) {
+        try {
+            const collectionFound = await prisma.collection.findUnique({
+                where: {
+                    collection_id: collectionId,
+                },
+                include: {
+                    posts: true,
+                },
+            });
+
+            if (!collectionFound) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Colección no encontrada",
+                };
+            }
+
+            return {
+                status: 200,
+                error: false,
+                data: collectionFound,
+            };
+        } catch (error: any) {
+            return {
+                status: 500,
+                error: true,
+                data: error.message,
+            };
+        }
+    }
 }
 
 export default ColletionServices;

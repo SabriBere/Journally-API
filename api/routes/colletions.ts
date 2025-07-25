@@ -10,6 +10,7 @@ router.post("/createCollection", CollectionsControllers.createCollection)
 router.get("/allCollections", CollectionsControllers.listOfCollections)
 
 //obtener una colección por id
+router.get("/collectionId", CollectionsControllers.oneCollection)
 
 //actualizar el nombre de una colección
 router.put("/updateCollection", CollectionsControllers.updateName)
