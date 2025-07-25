@@ -51,11 +51,11 @@ class PostControllers {
 
     static async assingColletion(req: Request, res: Response) {
         const postId = Number(req.query.postId);
-        const userId = Number(req.query.userId);
+        const collectionId = Number(req.query.collectionId);
 
         const { status, error, data } = await PostServices.putInCollection(
             postId,
-            userId
+            collectionId
         );
 
         if (error) {
