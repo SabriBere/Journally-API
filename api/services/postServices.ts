@@ -224,8 +224,6 @@ class PostServices {
         orderField?: any,
         orderDirection?: string
     ) {
-        console.log("orderField", orderField, "orderDirection", orderDirection);
-
         try {
             const pageSize: number = 20;
             const skip = (page - 1) * pageSize;
@@ -281,7 +279,7 @@ class PostServices {
                 data: { userPost, totalPages },
             };
         } catch (error: any) {
-            return { error: true, data: error.message };
+            return { status: 500, error: true, data: error.message };
         }
     }
 
