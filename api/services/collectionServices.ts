@@ -95,7 +95,13 @@ class ColletionServices {
         }
     }
 
-    static async allCollections(id: number, page: number, searchText?: string) {
+    static async allCollections(
+        id: number,
+        page: number,
+        searchText?: string,
+        orderField?: any,
+        orderDirection?: string
+    ) {
         try {
             const pageSize: number = 20;
             const skip = (page - 1) * pageSize;
@@ -108,6 +114,9 @@ class ColletionServices {
                         mode: "insensitive",
                     },
                 },
+                orderBy: {
+                    [orderField]: orderDirection,
+                },
             });
 
             const totalPages = Math.ceil(totalItems / pageSize);
@@ -118,6 +127,9 @@ class ColletionServices {
                         contains: searchText,
                         mode: "insensitive",
                     },
+                },
+                orderBy: {
+                    [orderField]: orderDirection,
                 },
                 skip,
                 take: pageSize,

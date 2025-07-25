@@ -53,11 +53,15 @@ class CollectionsControllers {
         const id = Number(req.query.id);
         const page = Number(req.query.page) || 1;
         const searchText = req.query.searchText as string | undefined;
+        const orderField = req.query.orderField as string | undefined;
+        const orderDirection = req.query.orderDirection as string | undefined;
 
         const { status, error, data } = await ColletionServices.allCollections(
             id,
             page,
-            searchText
+            searchText,
+            orderField,
+            orderDirection
         );
 
         if (error) {
