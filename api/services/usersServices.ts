@@ -1,5 +1,6 @@
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
+import { generateToken } from "../utils/jwt";
 
 const SALT_ROUNDS = 10;
 class UserService {
@@ -65,6 +66,7 @@ class UserService {
                     userId: userFinded.user_id,
                     user: userFinded.email,
                     userName: userFinded.user_name,
+                    token: generateToken({ userId: userFinded.user_id }),
                 },
             };
         } catch (error: any) {
