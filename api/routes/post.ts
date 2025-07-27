@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { validatePost } from "../middlewares/postValidation";
+import { authenticateToken } from "../middlewares/authtenticatedToken";
 import PostControllers from "../controllers/postControllers";
 const router = Router();
 
@@ -10,18 +11,18 @@ router.post("/create", validatePost, PostControllers.createPost);
 router.post("/createOne", validatePost, PostControllers.onePost);
 
 //asignar un post a una colección, si no la tiene
-router.put("/updateOne", PostControllers.assingColletion)
+router.put("/updateOne", PostControllers.assingColletion);
 
 //editar un post, cambiar titulo o descripción
-router.put("/updatePost", PostControllers.updatePost)
+router.put("/updatePost", PostControllers.updatePost);
 
 //buscar un post por id
-router.get("/findOne", PostControllers.findPost)
+router.get("/findOne", PostControllers.findPost);
 
 //todos los post de un usuario, con colecciones incluidas
-router.get("/", PostControllers.allPost);
+router.get("/", authenticateToken, PostControllers.allPost);
 
 //eliminar un post de un usuario
-router.delete("/deletePost", PostControllers.deletePost)
+router.delete("/deletePost", PostControllers.deletePost);
 
 export default router;
