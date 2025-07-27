@@ -20,7 +20,7 @@ export function authenticateToken(
         }
         const decoded = jwt.verify(token, JWT_SECRET);
         (req as any).user = decoded;
-        console.log((req as any).user, 'middleware')
+        // console.log((req as any).user, 'middleware')
         next();
     } catch (error) {
         return res
