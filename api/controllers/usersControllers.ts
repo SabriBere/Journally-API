@@ -44,7 +44,7 @@ class UserControllers {
         });
 
         // También podés evitar enviar el refreshToken en el JSON si está en cookie
-        // const { refreshToken, ...rest } = data;
+        const { refreshToken, ...rest } = data;
 
         return res.status(201).json({ data });
     }
