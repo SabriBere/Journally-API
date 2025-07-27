@@ -13,9 +13,14 @@ import swaggerConfig from "./swagger/swagger";
 const server = express();
 server.use(helmet());
 server.use(express.json());
-server.use(cors()); //configuración wild card
+server.use(
+    cors({
+        origin: "http://localhost:3000", // cambiar por varible de entorno
+        credentials: true,
+    })
+);
 server.use(morgan("dev")); //configuración básica para desarrollo
-server.use(cookieParser())
+server.use(cookieParser());
 
 //configuración de swagger - documentación de end points
 const docs = Swagger(swaggerConfig);
@@ -31,7 +36,7 @@ async function startServer() {
         await prisma.$connect();
         console.log("✅ Conectado a la base de datos con Prisma");
     } catch (error) {
-        await prisma.$disconnect()
+        await prisma.$disconnect();
         console.error("❌ Error conectando a la base de datos:", error);
     }
 
