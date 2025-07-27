@@ -1,6 +1,6 @@
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
-import { generateToken } from "../utils/jwt";
+import { generateRefreshToken, generateToken } from "../utils/auth";
 
 const SALT_ROUNDS = 10;
 class UserService {
@@ -50,14 +50,18 @@ class UserService {
                 body.password,
                 userFinded.password
             );
-
             if (!isMatch) {
                 return {
                     status: 401,
                     error: true,
-                    data: "Credenciales invalidas",
+                    data: "Credenciales inválidas",
                 };
             }
+
+            const accessToken = generateToken({ userId: userFinded.user_id });
+            const refreshToken = generateRefreshToken({
+                userId: userFinded.user_id,
+            });
 
             return {
                 status: 201,
@@ -66,7 +70,8 @@ class UserService {
                     userId: userFinded.user_id,
                     user: userFinded.email,
                     userName: userFinded.user_name,
-                    token: generateToken({ userId: userFinded.user_id }),
+                    token: accessToken,
+                    refresh: refreshToken,
                 },
             };
         } catch (error: any) {
