@@ -1,11 +1,13 @@
 import { Router } from "express";
+import { validateUser, validateNewsPass } from "../middlewares/userValidation";
 const router = Router();
 import UserControllers from "../controllers/usersControllers";
-import { validateUser, validateNewsPass } from "../middlewares/userValidation";
 
 router.post("/register", validateUser, UserControllers.create);
 
 router.post("/login", UserControllers.login);
+
+router.post("/refresh", UserControllers.refreshToken);
 
 router.put("/update", validateNewsPass, UserControllers.updatePassword);
 

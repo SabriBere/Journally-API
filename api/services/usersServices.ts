@@ -1,6 +1,7 @@
+import { generateRefreshToken, generateToken } from "../utils/auth";
+import jwt from "jsonwebtoken";
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
-import { generateRefreshToken, generateToken } from "../utils/auth";
 
 const SALT_ROUNDS = 10;
 class UserService {
@@ -79,6 +80,62 @@ class UserService {
                 status: 500,
                 error: true,
                 data: error.message,
+            };
+        }
+    }
+
+    static async verifyRefreshToken(req: any) {
+        try {
+            const refreshToken = req.cookies?.refreshToken;
+            console.log("🍪 Cookie refreshToken:", refreshToken);
+
+            if (!refreshToken) {
+                return {
+                    status: 401,
+                    error: true,
+                    data: "No se encontró el refresh token",
+                };
+            }
+
+            const decoded: any = jwt.verify(
+                refreshToken,
+                process.env.JWT_REFRESH_SECRET!
+            );
+
+            console.log("✅ Decoded:", decoded);
+
+            const userId = decoded.userId;
+
+            const user = await prisma.user.findUnique({
+                where: { user_id: userId },
+            });
+
+            if (!user) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Usuario no encontrado",
+                };
+            }
+
+            const newAccessToken = generateToken({ userId: user.user_id });
+
+            return {
+                status: 200,
+                error: false,
+                data: {
+                    token: newAccessToken,
+                    userId: user.user_id,
+                    user: user.email,
+                    userName: user.user_name,
+                },
+            };
+        } catch (error: any) {
+            console.error("❌ JWT verify error:", error);
+            return {
+                status: 403,
+                error: true,
+                data: "Refresh token inválido o expirado",
             };
         }
     }

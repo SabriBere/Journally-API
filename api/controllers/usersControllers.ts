@@ -35,16 +35,33 @@ class UserControllers {
         }
 
         // ✅ Ahora sí: seteamos cookie acá
-        res.cookie("refreshToken", data.refreshToken, {
+        res.cookie("refreshToken", data?.refreshToken, {
             httpOnly: true,
             // secure: process.env.NODE_ENV === "production",
             // sameSite: "strict",
-            path: "/api/refresh", // o "/"
+            path: "/api/users/refresh", // o "/"
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
         });
 
-        // También podés evitar enviar el refreshToken en el JSON si está en cookie
-        const { refreshToken, ...rest } = data;
+        // evitando enviar refres token en data
+        // const { refreshToken, ...rest } = data;
+
+        return res.status(201).json({ data });
+    }
+
+    static async refreshToken(req: Request, res: Response) {
+        const { status, error, data } =
+            await UserService.verifyRefreshToken(req);
+
+        if (error) {
+            if (status === 401) {
+                return res.status(401).json({ error: true, data });
+            } else if (status === 403) {
+                return res.status(403).json({ error: true, data });
+            } else {
+                return res.status(500).json({ error: true, data });
+            }
+        }
 
         return res.status(201).json({ data });
     }
