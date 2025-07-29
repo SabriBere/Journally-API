@@ -86,8 +86,7 @@ class UserService {
 
     static async verifyRefreshToken(req: any) {
         try {
-            const refreshToken = req.cookies?.refreshToken;
-            console.log("🍪 Cookie refreshToken:", refreshToken);
+            const refreshToken = req.headers["x-refresh-token"] as string;
 
             if (!refreshToken) {
                 return {
@@ -101,8 +100,6 @@ class UserService {
                 refreshToken,
                 process.env.JWT_REFRESH_SECRET!
             );
-
-            console.log("✅ Decoded:", decoded);
 
             const userId = decoded.userId;
 
@@ -119,12 +116,16 @@ class UserService {
             }
 
             const newAccessToken = generateToken({ userId: user.user_id });
+            const newRefreshToken = generateRefreshToken({
+                userId: user.user_id,
+            });
 
             return {
-                status: 200,
+                status: 201,
                 error: false,
                 data: {
-                    token: newAccessToken,
+                    newAccessToken, //enviar el nuevo token por headers
+                    newRefreshToken,
                     userId: user.user_id,
                     user: user.email,
                     userName: user.user_name,
