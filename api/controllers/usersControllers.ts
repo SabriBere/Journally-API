@@ -35,19 +35,13 @@ class UserControllers {
             }
         }
 
-        // ✅ Ahora sí: seteamos cookie acá
-        // res.cookie("refreshToken", data?.refreshToken, {
-        //     httpOnly: true,
-        //     // secure: process.env.NODE_ENV === "production",
-        //     // sameSite: "strict",
-        //     path: "/api/users/refresh", // o "/"
-        //     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-        // });
+        const { accessToken, refreshToken, ...userData } = data;
+        // console.log(accessToken, refreshToken)
 
-        // evitando enviar refres token en data
-        // const { refreshToken, ...rest } = data;
+        res.header("x-access-token", accessToken);
+        res.header("x-refresh-token", refreshToken);
 
-        return res.status(201).json({ data });
+        return res.status(201).json({ data: userData });
     }
 
     static async refreshToken(req: Request, res: Response) {
