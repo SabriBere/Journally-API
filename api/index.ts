@@ -3,7 +3,7 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan"; //combinar con winston o pino para logs de servidor
 import helmet from "helmet";
 import cors from "cors";
-import routes from "./routes/routes";
+// import routes from "./routes/routes";
 import prisma from "./db/db";
 import notFound from "./middlewares/notFound";
 import Swagger from "swagger-jsdoc";
@@ -26,7 +26,7 @@ server.use(cookieParser());
 const docs = Swagger(swaggerConfig);
 server.use("/swagger", SwaggerUi.serve, SwaggerUi.setup(docs));
 
-server.use("/api", routes);
+// server.use("/api", routes);
 
 // middleware de notFound
 server.use(notFound);
