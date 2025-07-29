@@ -9,6 +9,7 @@ export function authenticateToken(
     next: NextFunction
 ) {
     try {
+        //cada vez que se refresca, enviar 2 pares nuevos
         const accessToken = req.headers["x-access-token"] as string;
         const refreshToken = req.headers["x-refresh-token"] as string;
 
@@ -27,7 +28,7 @@ export function authenticateToken(
 
         //modificar logica para access y refresh
         const decodedAccess = jwt.verify(accessToken!, JWT_SECRET);
-        // const decodedRefresh = jwt.verify(refreshToken!, JWT_SECRET);
+        const decodedRefresh = jwt.verify(refreshToken!, JWT_SECRET);
 
         (req as any).user = decodedAccess;
         // console.log((req as any).user, 'middleware')

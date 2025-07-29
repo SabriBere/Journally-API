@@ -36,7 +36,6 @@ class UserControllers {
         }
 
         const { accessToken, refreshToken, ...userData } = data;
-        // console.log(accessToken, refreshToken)
 
         res.header("x-access-token", accessToken);
         res.header("x-refresh-token", refreshToken);
@@ -58,7 +57,12 @@ class UserControllers {
             }
         }
 
-        return res.status(201).json({ data });
+        const { newAccessToken, newRefreshToken, ...user }: any = data;
+
+        res.header("x-access-token", newAccessToken);
+        res.header("x-refresh-token", newRefreshToken);
+
+        return res.status(201).json({ data: user });
     }
 
     static async updatePassword(req: Request, res: Response) {
