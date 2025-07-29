@@ -86,22 +86,7 @@ class UserService {
 
     static async verifyRefreshToken(req: any) {
         try {
-            const refreshToken = req.headers["x-refresh-token"] as string;
-
-            if (!refreshToken) {
-                return {
-                    status: 401,
-                    error: true,
-                    data: "No se encontró el refresh token",
-                };
-            }
-
-            const decoded: any = jwt.verify(
-                refreshToken,
-                process.env.JWT_REFRESH_SECRET!
-            );
-
-            const userId = decoded.userId;
+            const { userId } = req.user;
 
             const user = await prisma.user.findUnique({
                 where: { user_id: userId },
