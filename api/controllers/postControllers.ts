@@ -102,6 +102,7 @@ class PostControllers {
     }
 
     static async allPost(req: Request, res: Response) {
+        // console.log(req,'recibe el id por cookies?')
         const id = (req as any).user?.userId
         const page = Number(req.query.page) || 1;
         const searchText = req.query.searchText as string | undefined;
