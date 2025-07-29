@@ -9,17 +9,27 @@ export function authenticateToken(
     next: NextFunction
 ) {
     try {
-        const authHeader = req.headers["authorization"];
-        const token = authHeader && authHeader.split(" ")[1];
+        const accessToken = req.headers["x-access-token"] as string;
+        const refreshToken = req.headers["x-refresh-token"] as string;
 
         //si no hay un token proporcionado
-        if (!token) {
+        if (!accessToken) {
             return res
                 .status(401)
                 .json({ error: true, data: "Token no proporcionado" });
         }
-        const decoded = jwt.verify(token, JWT_SECRET);
-        (req as any).user = decoded;
+
+        if (!refreshToken) {
+            return res
+                .status(401)
+                .json({ error: true, data: "Refresh no proporcionado" });
+        }
+
+        //modificar logica para access y refresh
+        const decodedAccess = jwt.verify(accessToken!, JWT_SECRET);
+        // const decodedRefresh = jwt.verify(refreshToken!, JWT_SECRET);
+
+        (req as any).user = decodedAccess;
         // console.log((req as any).user, 'middleware')
         next();
     } catch (error) {
