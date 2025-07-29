@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
 
-const SALT_ROUNDS = Number(process.env.SALT_ROUND) || 10
+const SALT_ROUNDS = Number(process.env.SALT_ROUND) || 10;
 class UserService {
     static async createUser(body: {
         email: string;
@@ -71,8 +71,8 @@ class UserService {
                     userId: userFinded.user_id,
                     user: userFinded.email,
                     userName: userFinded.user_name,
-                    token: accessToken,
-                    refresh: refreshToken,
+                    accessToken,
+                    refreshToken,
                 },
             };
         } catch (error: any) {
