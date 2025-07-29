@@ -21,6 +21,7 @@ class UserControllers {
         res.status(200).json({ data });
     }
 
+    //enviar el token y refresh token por headers en vez de por body?
     static async login(req: Request, res: Response) {
         const { status, error, data } = await UserService.getUser(req.body);
 
@@ -35,13 +36,13 @@ class UserControllers {
         }
 
         // ✅ Ahora sí: seteamos cookie acá
-        res.cookie("refreshToken", data?.refreshToken, {
-            httpOnly: true,
-            // secure: process.env.NODE_ENV === "production",
-            // sameSite: "strict",
-            path: "/api/users/refresh", // o "/"
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-        });
+        // res.cookie("refreshToken", data?.refreshToken, {
+        //     httpOnly: true,
+        //     // secure: process.env.NODE_ENV === "production",
+        //     // sameSite: "strict",
+        //     path: "/api/users/refresh", // o "/"
+        //     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+        // });
 
         // evitando enviar refres token en data
         // const { refreshToken, ...rest } = data;
