@@ -8,7 +8,8 @@ export function generateToken(payload: object, expiresIn = 3600) {
     return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
-export function generateRefreshToken(payload: object, expiresIn = 36000) {
+//10800 7 días
+export function generateRefreshToken(payload: object, expiresIn = 7 * 24 * 60 * 60 ) {
     return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn });
 }
 

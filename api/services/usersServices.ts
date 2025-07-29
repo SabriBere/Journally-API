@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
 
-const SALT_ROUNDS = 10;
+// const SALT_ROUNDS = 10;
 class UserService {
     static async createUser(body: {
         email: string;
@@ -11,7 +11,7 @@ class UserService {
         user_name?: string;
     }) {
         const { email, password, user_name } = body;
-        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+        const hashedPassword = await bcrypt.hash(password, process.env.SALT_ROUND!);
 
         try {
             const user = await prisma.user.create({
@@ -179,7 +179,7 @@ class UserService {
                 };
             }
 
-            const newHashPass = await bcrypt.hash(newPass, SALT_ROUNDS);
+            const newHashPass = await bcrypt.hash(newPass, process.env.SALT_ROUND!);
 
             await prisma.user.update({
                 where: {
