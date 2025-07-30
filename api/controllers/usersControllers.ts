@@ -21,8 +21,10 @@ class UserControllers {
         res.status(200).json({ data });
     }
 
+    //enviar el token y refresh token por headers en vez de por body?
     static async login(req: Request, res: Response) {
         const { status, error, data } = await UserService.getUser(req.body);
+
         if (error) {
             if (status === 401) {
                 return res.status(401).json({ data });
@@ -32,7 +34,35 @@ class UserControllers {
                 return res.status(500).json({ error: true, data });
             }
         }
-        res.status(201).json({ data });
+
+        const { accessToken, refreshToken, ...userData } = data;
+
+        res.header("x-access-token", accessToken);
+        res.header("x-refresh-token", refreshToken);
+
+        return res.status(201).json({ data: userData });
+    }
+
+    static async refreshToken(req: Request, res: Response) {
+        const { status, error, data } =
+            await UserService.verifyRefreshToken(req);
+
+        if (error) {
+            if (status === 401) {
+                return res.status(401).json({ error: true, data });
+            } else if (status === 403) {
+                return res.status(403).json({ error: true, data });
+            } else {
+                return res.status(500).json({ error: true, data });
+            }
+        }
+
+        const { newAccessToken, newRefreshToken, ...user }: any = data;
+
+        res.header("x-access-token", newAccessToken);
+        res.header("x-refresh-token", newRefreshToken);
+
+        return res.status(201).json({ data: user });
     }
 
     static async updatePassword(req: Request, res: Response) {

@@ -1,8 +1,9 @@
+import { generateRefreshToken, generateToken } from "../utils/auth";
+import jwt from "jsonwebtoken";
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
-import { generateToken } from "../utils/jwt";
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = Number(process.env.SALT_ROUND) || 10;
 class UserService {
     static async createUser(body: {
         email: string;
@@ -50,14 +51,18 @@ class UserService {
                 body.password,
                 userFinded.password
             );
-
             if (!isMatch) {
                 return {
                     status: 401,
                     error: true,
-                    data: "Credenciales invalidas",
+                    data: "Credenciales inválidas",
                 };
             }
+
+            const accessToken = generateToken({ userId: userFinded.user_id });
+            const refreshToken = generateRefreshToken({
+                userId: userFinded.user_id,
+            });
 
             return {
                 status: 201,
@@ -66,7 +71,8 @@ class UserService {
                     userId: userFinded.user_id,
                     user: userFinded.email,
                     userName: userFinded.user_name,
-                    token: generateToken({ userId: userFinded.user_id }),
+                    accessToken,
+                    refreshToken,
                 },
             };
         } catch (error: any) {
@@ -74,6 +80,48 @@ class UserService {
                 status: 500,
                 error: true,
                 data: error.message,
+            };
+        }
+    }
+
+    static async verifyRefreshToken(req: any) {
+        try {
+            const { userId } = req.user;
+
+            const user = await prisma.user.findUnique({
+                where: { user_id: userId },
+            });
+
+            if (!user) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Usuario no encontrado",
+                };
+            }
+
+            const newAccessToken = generateToken({ userId: user.user_id });
+            const newRefreshToken = generateRefreshToken({
+                userId: user.user_id,
+            });
+
+            return {
+                status: 201,
+                error: false,
+                data: {
+                    newAccessToken, //enviar el nuevo token por headers
+                    newRefreshToken,
+                    userId: user.user_id,
+                    user: user.email,
+                    userName: user.user_name,
+                },
+            };
+        } catch (error: any) {
+            console.error("❌ JWT verify error:", error);
+            return {
+                status: 403,
+                error: true,
+                data: "Refresh token inválido o expirado",
             };
         }
     }
