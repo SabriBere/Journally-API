@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import PostServices from '../services/postServices';
+import PostServices from "../services/postServices";
 
 class PostControllers {
     static async createPost(req: Request, res: Response) {
@@ -102,7 +102,7 @@ class PostControllers {
     }
 
     static async allPost(req: Request, res: Response) {
-        const id = (req as any).user?.userId
+        const id = (req as any).user?.userId;
         const page = Number(req.query.page) || 1;
         const searchText = req.query.searchText as string | undefined;
         const orderField = req.query.orderField as string | undefined;
@@ -125,18 +125,18 @@ class PostControllers {
         res.status(200).json({ data });
     }
 
-    static async deletePost(req: Request, res: Response){
+    static async deletePost(req: Request, res: Response) {
         const postId = Number(req.query.postId);
-        const { status, error, data } = await PostServices.eraserPost(postId)
+        const { status, error, data } = await PostServices.eraserPost(postId);
 
-        if(error){
-            if(status === 404){
-                return res.status(404).json({ data })
+        if (error) {
+            if (status === 404) {
+                return res.status(404).json({ data });
             } else {
-                return res.status(500).json({ data })
+                return res.status(500).json({ data });
             }
         }
-        return res.status(204).json({ data })
+        return res.status(204).json({ data });
     }
 }
 

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET! as string;
 
 export function authenticateToken(
     req: Request,
@@ -9,22 +10,50 @@ export function authenticateToken(
     next: NextFunction
 ) {
     try {
-        const authHeader = req.headers["authorization"];
-        const token = authHeader && authHeader.split(" ")[1];
+        //cada vez que se refresca, enviar 2 pares nuevos
+        const accessToken = req.headers["x-access-token"] as string;
 
         //si no hay un token proporcionado
-        if (!token) {
+        if (!accessToken) {
             return res
                 .status(401)
                 .json({ error: true, data: "Token no proporcionado" });
         }
-        const decoded = jwt.verify(token, JWT_SECRET);
-        (req as any).user = decoded;
-        console.log((req as any).user, 'middleware')
+
+        //modificar logica para access y refresh
+        const decodedAccess = jwt.verify(accessToken!, JWT_SECRET);
+
+        (req as any).user = decodedAccess;
         next();
     } catch (error) {
         return res
             .status(401)
             .json({ error: true, data: "Token inválido o expirado" });
+    }
+}
+
+export function authenticateRefresh(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    try {
+        const refreshToken = req.headers["x-refresh-token"] as string;
+
+        if (!refreshToken) {
+            return res
+                .status(401)
+                .json({ error: true, data: "Refresh no proporcionado" });
+        }
+
+        const decodedRefresh = jwt.verify(refreshToken!, JWT_REFRESH_SECRET);
+
+        (req as any).user = decodedRefresh;
+
+        next();
+    } catch (error) {
+        return res
+            .status(401)
+            .json({ error: true, data: "Token refresh invalido o expirado" });
     }
 }
