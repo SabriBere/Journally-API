@@ -81,7 +81,7 @@ class UserControllers {
     }
 
     static async deleteUser(req: Request, res: Response) {
-        const id = Number(req.query.id);
+        const id = (req as any).user?.userId;
         const { status, error, data } = await UserService.eraserUser(id);
 
         if (error) {
