@@ -10,7 +10,7 @@ class PostControllers {
             return res.status(400).json({ error: true, data: errors.array() });
         }
 
-        const userId = Number(req.query.userId);
+        const userId = (req as any).user?.userId;
         const collectionId = Number(req.query.collectionId);
 
         const { status, error, data } = await PostServices.create(
@@ -35,7 +35,7 @@ class PostControllers {
             return res.status(400).json({ error: true, data: errors.array() });
         }
 
-        const userId = Number(req.query.userId);
+        const userId = (req as any).user?.userId;
         const { status, error, data } =
             await PostServices.createWithOutCollection(userId, req.body);
 
