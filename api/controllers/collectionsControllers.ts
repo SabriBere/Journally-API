@@ -49,7 +49,7 @@ class CollectionsControllers {
     }
 
     static async listOfCollections(req: Request, res: Response) {
-        const id = Number(req.query.id);
+        const id = (req as any).user?.userId;;
         const page = Number(req.query.page) || 1;
         const searchText = req.query.searchText as string | undefined;
         const orderField = req.query.orderField as string | undefined;
