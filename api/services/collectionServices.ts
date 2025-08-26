@@ -1,13 +1,15 @@
 import prisma from "../db/db";
 
 class ColletionServices {
-    static async create(body: {
-        collectionName: string;
-        title: string;
-        userId: number;
-    }) {
+    static async create(
+        body: {
+            collectionName: string;
+            title: string;
+        },
+        userId: number
+    ) {
         try {
-            const { collectionName, title, userId } = body;
+            const { collectionName, title } = body;
 
             const collectionCreated = await prisma.collection.create({
                 data: {
@@ -21,7 +23,7 @@ class ColletionServices {
 
             return {
                 status: 201,
-                error: true,
+                error: false,
                 data: collectionCreated,
             };
         } catch (error: any) {

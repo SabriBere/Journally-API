@@ -3,8 +3,10 @@ import ColletionServices from "../services/collectionServices";
 
 class CollectionsControllers {
     static async createCollection(req: Request, res: Response) {
+        const userId = (req as any).user?.userId;
         const { status, error, data } = await ColletionServices.create(
-            req.body
+            req.body,
+            userId
         );
 
         if (error) {
