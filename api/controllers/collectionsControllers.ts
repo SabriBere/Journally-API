@@ -52,7 +52,6 @@ class CollectionsControllers {
 
     static async listOfCollections(req: Request, res: Response) {
         const id = (req as any).user?.userId;
-        console.log(id)
         const page = Number(req.query.page) || 1;
         const searchText = req.query.searchText as string | undefined;
         const orderField = req.query.orderField as string | undefined;
