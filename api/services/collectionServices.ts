@@ -125,6 +125,7 @@ class ColletionServices {
 
             const collectionList = await prisma.collection.findMany({
                 where: {
+                    user_id: id,
                     title: {
                         contains: searchText,
                         mode: "insensitive",
