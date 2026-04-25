@@ -2,8 +2,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PG_BIN="/Library/PostgreSQL/17/bin"
-DATA_DIR="${JOURNALLY_PGDATA:-/tmp/journally-pgdata}"
+DATA_DIR="${JOURNALLY_PGDATA:-$PROJECT_DIR/.local/postgres/data}"
 
 if [ ! -f "$DATA_DIR/PG_VERSION" ]; then
   echo "No local PostgreSQL cluster found in $DATA_DIR"
