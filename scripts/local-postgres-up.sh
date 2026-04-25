@@ -2,13 +2,16 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PG_BIN="/Library/PostgreSQL/17/bin"
-DATA_DIR="${JOURNALLY_PGDATA:-/tmp/journally-pgdata}"
-SOCKET_DIR="${JOURNALLY_PGSOCKET:-/tmp/journally-pgsocket}"
-LOG_FILE="${JOURNALLY_PGLOG:-/tmp/journally-postgres.log}"
+DATA_DIR="${JOURNALLY_PGDATA:-$PROJECT_DIR/.local/postgres/data}"
+SOCKET_DIR="${JOURNALLY_PGSOCKET:-$PROJECT_DIR/.local/postgres/socket}"
+LOG_FILE="${JOURNALLY_PGLOG:-$PROJECT_DIR/.local/postgres/postgres.log}"
 PG_PORT="${JOURNALLY_PGPORT:-5433}"
 PG_USER="${JOURNALLY_PGUSER:-postgres}"
 PG_DB="${JOURNALLY_PGDATABASE:-journally_dev}"
+PID_FILE="$DATA_DIR/postmaster.pid"
 
 mkdir -p "$DATA_DIR" "$SOCKET_DIR"
 
@@ -29,11 +32,26 @@ unix_socket_directories = '$SOCKET_DIR'
 EOF
 fi
 
-if "$PG_BIN/pg_ctl" -D "$DATA_DIR" status >/dev/null 2>&1; then
+if [ -f "$PID_FILE" ]; then
+  if "$PG_BIN/pg_ctl" -D "$DATA_DIR" status >/dev/null 2>&1; then
+    echo "PostgreSQL already running on port $PG_PORT"
+  elif lsof -nP -iTCP:"$PG_PORT" -sTCP:LISTEN 2>/dev/null | grep -q postgres; then
+    echo "PostgreSQL already running on port $PG_PORT"
+  else
+    echo "Found stale postmaster.pid, removing it"
+    rm -f "$PID_FILE"
+  fi
+fi
+
+if [ ! -f "$PID_FILE" ] && lsof -nP -iTCP:"$PG_PORT" -sTCP:LISTEN 2>/dev/null | grep -q postgres; then
+  echo "PostgreSQL already running on port $PG_PORT"
+elif [ ! -f "$PID_FILE" ] && "$PG_BIN/pg_isready" -h "$SOCKET_DIR" -p "$PG_PORT" -U "$PG_USER" >/dev/null 2>&1; then
   echo "PostgreSQL already running on port $PG_PORT"
 else
-  echo "Starting local PostgreSQL on port $PG_PORT"
-  "$PG_BIN/pg_ctl" -D "$DATA_DIR" -l "$LOG_FILE" start
+  if [ ! -f "$PID_FILE" ]; then
+    echo "Starting local PostgreSQL on port $PG_PORT"
+    "$PG_BIN/pg_ctl" -D "$DATA_DIR" -l "$LOG_FILE" start
+  fi
 fi
 
 if ! "$PG_BIN/psql" -h "$SOCKET_DIR" -p "$PG_PORT" -U "$PG_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$PG_DB'" | grep -q 1; then
