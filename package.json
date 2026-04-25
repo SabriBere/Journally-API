@@ -8,6 +8,7 @@
     "main": "index.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
+        "predev": "npm run db:local:up",
         "dev": "node --env-file=.env.dev --watch --watch-preserve-output -r ts-node/register api/index.ts",
         "db:local:up": "bash scripts/local-postgres-up.sh",
         "db:local:down": "bash scripts/local-postgres-down.sh",
