@@ -42,7 +42,7 @@ model Collection {
 model Post {
   post_id       Int        @id @default(autoincrement())
   title         String
-  description   String
+  description   Json
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
   user_id       Int
