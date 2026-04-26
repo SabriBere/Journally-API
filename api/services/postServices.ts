@@ -1,4 +1,8 @@
+import { Prisma } from "@prisma/client";
 import prisma from "../db/db";
+
+type PostDescription = Prisma.InputJsonValue;
+
 class PostServices {
     //require de tener las colecciones creadas previamente
     static async create(
@@ -6,7 +10,7 @@ class PostServices {
         collectionId: number,
         body: {
             title: string;
-            description: string;
+            description: PostDescription;
         }
     ) {
         const { title, description } = body;
@@ -37,8 +41,8 @@ class PostServices {
 
             const postCreated = await prisma.post.create({
                 data: {
-                    title: title,
-                    description: description,
+                    title: title.trim(),
+                    description: description as never,
                     user: {
                         connect: { user_id: userId },
                     },
@@ -62,7 +66,7 @@ class PostServices {
         userId: number,
         body: {
             title: string;
-            description: string;
+            description: PostDescription;
         }
     ) {
         try {
@@ -82,8 +86,8 @@ class PostServices {
 
             const postCreated = await prisma.post.create({
                 data: {
-                    title: title,
-                    description: description,
+                    title: title.trim(),
+                    description: description as never,
                     user: {
                         connect: { user_id: userId },
                     },
@@ -182,16 +186,31 @@ class PostServices {
         postId: number,
         body: {
             title?: string;
-            description?: string;
+            description?: PostDescription;
         }
     ) {
         try {
-            const dataToUpdate: any = {};
+            const dataToUpdate: Prisma.PostUpdateInput = {};
 
             const { title, description } = body;
 
-            if (title !== "") dataToUpdate.title = title;
-            if (description !== "") dataToUpdate.description = description;
+            if (title !== undefined) {
+                const trimmedTitle = title.trim();
+
+                if (!trimmedTitle) {
+                    return {
+                        status: 400,
+                        error: true,
+                        data: "El título no puede estar vacío.",
+                    };
+                }
+
+                dataToUpdate.title = trimmedTitle;
+            }
+
+            if (description !== undefined) {
+                dataToUpdate.description = description as never;
+            }
 
             if (Object.keys(dataToUpdate).length === 0) {
                 return {
