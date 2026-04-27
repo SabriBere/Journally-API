@@ -84,29 +84,6 @@ class PostControllers {
         return res.status(200).json({ data });
     }
 
-    static async updatePost(req: Request, res: Response) {
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ error: true, data: errors.array() });
-        }
-
-        const postId = Number(req.query.postId);
-        const { status, error, data } = await PostServices.editPost(
-            postId,
-            req.body
-        );
-        if (error) {
-            if (status === 404) {
-                return res.status(404).json({ data });
-            } else {
-                return res.status(500).json({ data });
-            }
-        }
-
-        return res.status(200).json({ data });
-    }
-
     static async autoSavePost(req: Request, res: Response) {
         const errors = validationResult(req);
 
