@@ -1,330 +1,284 @@
-# 🪐 Jornally-API
+# 🪐 Journally API
 
-API REST del proyecto **Journally APP**, creada para gestionar usuarios, colecciones y entradas del diario personal.
-Implementada con una arquitectura limpia, separación por capas y validaciones robustas.
+API REST del proyecto **Journally App**, creada para gestionar usuarios, colecciones y entradas de un diario personal.
 
-## 📚 Indice
+Está desarrollada con **Node.js**, **Express**, **TypeScript**, **Prisma** y **PostgreSQL**, con autenticación JWT, validaciones por middleware y documentación interactiva con Swagger/OpenAPI.
 
-- [Introducción](#introducción)
-    - [Funcionalidades](#funcionalidades)
-- [Clonar el repositorio](#clonar-el-repositorio)
+## Índice
+
+- [Funcionalidades](#funcionalidades)
+- [Stack](#stack)
+- [Requisitos](#requisitos)
 - [Instalación](#instalación)
-- [Stack del proyecto](#stack-del-proyecto)
-- [Entornos e Integración](#entornos-e-integración)
-    - [Scripts disponibles](#scripts-disponibles)
+- [Variables de entorno](#variables-de-entorno)
+- [Scripts disponibles](#scripts-disponibles)
+- [Documentación Swagger](#documentación-swagger)
+- [Endpoints principales](#endpoints-principales)
 - [Arquitectura](#arquitectura)
-- [Instalación](#instalación)
-    - [Clonar el repositorio](#clonar-el-repositorio)
-- [Configuraciones de formato](#configuraciones-de-formato)
-    - [Prettier](#prettier)
-    - [ESLint](#eslint)
+- [Base de datos](#base-de-datos)
 - [Testing](#testing)
 - [DER](#der)
-    - [Creación de base de datos (PostgreSQL + Prisma)](#creación-de-base-de-datos)
 
----
+## Funcionalidades
 
-## 📝 Introducción:
+- Registro e inicio de sesión de usuarios.
+- Autenticación mediante JWT usando headers `x-access-token` y `x-refresh-token`.
+- CRUD de posts/entradas.
+- CRUD de colecciones.
+- Posts con `description` en formato JSON.
+- Listados paginados con búsqueda y ordenamiento.
+- Validación de requests con `express-validator`.
+- Documentación interactiva con Swagger UI.
+- Acceso a datos mediante Prisma ORM.
 
-**Journally-API** es el backend del ecosistema Journally.
-Provee endpoints para manejar:
+## Stack
 
-- Usuarios
-
-- Colecciones
-
-- Entradas
-
-- Autenticación mediante JWT
-
-- Validaciones y sanitización de datos
-
-- Documentación con Swagger
-
-La API está desarrollada con **Node.js**, **Express** y **Prisma**, conectada a una base de datos relacional.
-
-### ✨ Funcionalidades
-
-✔️ Registro e inicio de sesión de usuarios
-
-✔️ Manejo completo de colecciones (CRUD)
-
-✔️ Manejo de entradas o posts (CRUD)
-
-✔️ Validación de datos con middlewares
-
-✔️ Manejo de errores centralizado
-
-✔️ Autenticación con JWT
-
-✔️ Documentación con Swagger UI
-
----
-
-## 📦 Clonar repositorio
-
-```bash
-
-git clone https://github.com/<tu-usuario>/Journally-API.git
-cd Journally-API
-
-```
-
----
-
-## 🛠 Instalación
-
-1. Instalar dependencias
-
-```bash
-`npm install` o `npm i`
-
-```
-
-2. Crear un archivo _*.env*_ con variables de entorno necesarias.
-   Utilizar de referecia el archivo _*env.example*_
-
-```
-# Entorno de la aplicación
-NODE_ENV=development
-PORT=8080
-
-# Cors - orígenes permitidos (separados por comas)
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
-
-# Configuración de Swagger
-SERVER=localhost
-
-# Vueltas en desarrollo para bcrypt
-SALT_ROUND=10
-
-# Conexión a la base de datos (reemplazar con datos reales)
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
-
-# Secretos para JWT (reemplazar con strings seguros)
-JWT_SECRET=your_jwt_secret_here
-JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
-
-```
-
----
-
-## Stack del proyecto
-
-- Node.js
+- Node.js >= 20.6.0
 - Express
 - TypeScript
 - Prisma ORM
 - PostgreSQL
-- JWT con bcrypt
-- Swagger
+- JWT
+- bcrypt
+- Swagger/OpenAPI
+- Jest + Supertest como base para testing
 
----
+## Requisitos
 
-## 🔧 Entornos e Integración
+- Node.js `>=20.6.0`
+- npm
+- PostgreSQL local o remoto
+- Variables de entorno configuradas
 
-### Scripts disponibles
-
-```json
-"scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "node --env-file=.env.dev --watch --watch-preserve-output -r ts-node/register api/index.ts",
-        "generate": "npx prisma generate",
-        "migrate": "npx prisma migrate dev --name init",
-        "build": "tsc"
-    },
-
-```
-
----
-
-## 🧱 Arquitectura
+## Instalación
 
 ```bash
+git clone https://github.com/<tu-usuario>/Journally-API.git
+cd Journally-API
+npm install
+```
 
+Creá un archivo `.env.dev` para desarrollo local con las variables necesarias.
+
+## Variables de entorno
+
+Ejemplo de configuración:
+
+```env
+NODE_ENV=development
+PORT=8080
+SERVER=localhost
+
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
+
+JWT_SECRET=your_jwt_secret_here
+JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
+
+SALT_ROUND=10
+```
+
+Notas:
+
+- `SERVER` y `PORT` se usan para armar la URL local de Swagger.
+- `DATABASE_URL` debe apuntar a una base PostgreSQL.
+- Los secretos JWT deben reemplazarse por valores seguros fuera de desarrollo.
+
+## Scripts disponibles
+
+```bash
+npm run dev
+```
+
+Levanta el servidor en modo desarrollo usando `.env.dev`. Antes ejecuta `npm run db:local:up`.
+
+```bash
+npm run db:local:up
+```
+
+Levanta PostgreSQL local usando el script `scripts/local-postgres-up.sh`.
+
+```bash
+npm run db:local:down
+```
+
+Baja el PostgreSQL local usando `scripts/local-postgres-down.sh`.
+
+```bash
+npm run db:migrate:dev
+```
+
+Ejecuta las migraciones Prisma sobre el entorno `.env.dev`.
+
+```bash
+npm run user:create:dev
+```
+
+Crea un usuario de desarrollo usando `scripts/create-dev-user.ts`.
+
+```bash
+npm run generate
+```
+
+Genera el cliente Prisma.
+
+```bash
+npm run migrate
+```
+
+Crea una migración Prisma de desarrollo con nombre `init`.
+
+```bash
+npm run build
+```
+
+Compila TypeScript.
+
+```bash
+npm test
+```
+
+Actualmente es un placeholder y falla de forma intencional.
+
+## Documentación Swagger
+
+La documentación está disponible cuando el servidor está levantado:
+
+```txt
+http://localhost:8080/swagger
+```
+
+Si usás otro `PORT`, cambiá la URL según tu `.env.dev`.
+
+La configuración vive en:
+
+- `api/swagger/swagger.ts`
+- `api/swagger/swaggerEntries.ts`
+
+Swagger documenta schemas reutilizables, headers de autenticación, query params, request bodies y respuestas principales.
+
+## Endpoints principales
+
+Todas las rutas están montadas bajo `/api`.
+
+### Users
+
+| Método | Ruta | Descripción | Auth |
+| --- | --- | --- | --- |
+| `POST` | `/api/users/register` | Registra un usuario | No |
+| `POST` | `/api/users/login` | Inicia sesión y devuelve `x-access-token` | No |
+| `POST` | `/api/users/refresh` | Renueva tokens usando `x-refresh-token` | Refresh |
+| `PUT` | `/api/users/update` | Actualiza contraseña | Access |
+| `DELETE` | `/api/users/delete/:id` | Elimina el usuario autenticado | Access |
+
+### Posts
+
+| Método | Ruta | Descripción | Auth |
+| --- | --- | --- | --- |
+| `POST` | `/api/post/create?collectionId=1` | Crea un post dentro de una colección | Access |
+| `POST` | `/api/post/createOne` | Crea un post sin colección | Access |
+| `PUT` | `/api/post/updateOne?postId=1&collectionId=1` | Asigna un post a una colección | Access |
+| `PUT` | `/api/post/updatePost?postId=1` | Edita título o descripción | Access |
+| `GET` | `/api/post/findOne?postId=1` | Busca un post por id | No |
+| `GET` | `/api/post` | Lista posts del usuario autenticado | Access |
+| `DELETE` | `/api/post/deletePost?postId=1` | Elimina un post | Access |
+
+### Collections
+
+| Método | Ruta | Descripción | Auth |
+| --- | --- | --- | --- |
+| `POST` | `/api/collections/createCollection` | Crea una colección | Access |
+| `GET` | `/api/collections/allCollections` | Lista colecciones del usuario | Access |
+| `GET` | `/api/collections/collectionId?id=1` | Obtiene una colección con sus posts | Access |
+| `PUT` | `/api/collections/updateCollection` | Actualiza el título de una colección | Access |
+| `DELETE` | `/api/collections/deteleCollection?id=1` | Elimina una colección | Access |
+
+## Arquitectura
+
+```txt
 api/
-├── index.ts
-│
-├── config
-│
 ├── controllers
 │   ├── collectionsControllers.ts
 │   ├── postControllers.ts
 │   └── usersControllers.ts
-│
 ├── db
 │   └── db.ts
-│
 ├── middlewares
 │   ├── authtenticatedToken.ts
 │   ├── notFound.ts
 │   ├── postValidation.ts
 │   └── userValidation.ts
-│
 ├── routes
 │   ├── colletions.ts
 │   ├── post.ts
 │   ├── routes.ts
 │   └── users.ts
-│
 ├── services
 │   ├── collectionServices.ts
 │   ├── postServices.ts
 │   └── usersServices.ts
-│
 ├── swagger
 │   ├── swagger.ts
 │   └── swaggerEntries.ts
-│
-└── utils
-    └── auth.ts
-
+├── utils
+│   └── auth.ts
+└── index.ts
 ```
 
-### 📌 Patrón aplicado
-
-El proyecto implementa una arquitectura por capas basada en el patrón **_Service Layer_** o **_Servicio por capaz_**, una estructura muy utilizada en APIs modernas porque separa las responsabilidades, facilita el mantenimiento y hace que el sistema sea altamente testeable.
-
-El proyecto sigue una arquitectura por capas denómiado **_Service Layer_** o **_Servicio por capaz_**:
-
-🧱 1. **Controllers (Capa HTTP)**
-
-Los _controllers_ son la interfaz entre Express y la lógica real del sistema.
-
-Responsabilidades:
-
-- Recibir datos de req.query, req.params, req.body.
-- Ejecutar validaciones básicas (express-validator).
-- Invocar métodos de la capa de servicios.
-- Formatear la respuesta HTTP (status code, JSON, mensajes).
-- Nunca contienen lógica de negocio.
-
-_*Objetivo:*_ Mantener el controlador enfocado solo en reglas HTTP, no en decisiones de negocio.
-
-🧠 2. **Services (Capa de Lógica de Negocio)**
-
-La capa **_Service Layer_** concentra la lógica central de la aplicación:
-
-- Validaciones de reglas (usuario existe, colección válida, etc.).
-- Orquestación de múltiples consultas a la DB.
-- Control y unificación de errores internos.
-- Transformación de datos y preparación de respuestas.
-
-Se utiliza un estilo _POO relajado (clases como namespaces) combinado con estilo funcional_, lo que permite:
-
-- agrupar métodos por dominio (PostServices, UserServices, etc.),
-- pero mantener cada método sin estado interno y altamente testeable.
-
-Esto permite testear cada service _sin Express_, simplemente llamándolo como una función.
-
-🗄️ 3. **DB / Prisma (Capa de Acceso a Datos)**
-
-Prisma actúa como el ORM para consultas a la base de datos.
-
-- Las consultas se realizan exclusivamente desde la capa de Servicios.
-- No contiene lógica de negocio.
-- Permite tipado fuerte y autocompletado sobre el esquema.
-- Centraliza la persistencia y mantiene limpieza en el resto del proyecto.
-
-_*Objetivo:*_ Desacoplar totalmente la infraestructura de la lógica de negocio.
-
-🧩 4. **Middlewares**
-
-Los _middlewares_ permiten agregar lógica transversal sin contaminar los controllers:
-
-- Autenticación (JWT / Session)
-- Validaciones (express-validator)
-
-Se ejecutan antes de alcanzar el controller, permitiendo garantizar que la request llega en un estado válido.
-
-📚 5. **Swagger (Documentación)**
-
-El proyecto incluye documentación con _Swagger/OpenAPI_, lo que proporciona:
-
-- Descripción clara de rutas, métodos, parámetros y respuestas.
-- Posibilidad de testear endpoints desde una UI amigable.
-
-Este diseño se eligió porque proporciona:
-
-✔️ Separación de responsabilidades (SRP)
-Cada capa hace solo una cosa.
-
-✔️ Testeo simple
-La lógica del negocio se puede testear aislada de Express, copiando un estilo más cercano a FP puro.
-
-✔️ Escalabilidad
-Nuevas features se suman agregando servicios y controllers sin romper la estructura.
-
-✔️ Reutilización
-Los services pueden ser utilizados por otros ambientes (CLI, workers, CRONs) sin depender de Express.
-
-✔️ Claridad en el flujo
+El proyecto usa una arquitectura por capas:
 
 ```txt
-HTTP → Controller → Service → Prisma → DB
-
-                  ┌────────────┐
-   Request  ─────►│ Controller │──────┐
-                  └────────────┘      │
-                                      ▼
-                                ┌────────────┐
-                                │  Service   │
-                                │ (negocio)  │
-                                └────────────┘
-                                      │
-                                      ▼
-                                ┌────────────┐
-                                │   Prisma   │
-                                │   (ORM)    │
-                                └────────────┘
-                                      │
-                                      ▼
-                                  Database
+HTTP -> Controller -> Service -> Prisma -> Database
 ```
 
-## 🧹 Configuraciones de fromato
+### Controllers
 
-### Prettier
+Reciben la request de Express, leen `req.body`, `req.query` o `req.params`, revisan errores de validación y delegan la lógica a los services.
 
-Archivo _*.prettierrc*_ sugerido:
+### Services
 
-```json
-{
-    "semi": true,
-    "trailingComma": "es5",
-    "singleQuote": false,
-    "printWidth": 80,
-    "tabWidth": 4,
-    "overrides": [
-        {
-            "files": "*.yml",
-            "options": {
-                "tabWidth": 2
-            }
-        }
-    ]
-}
+Concentran la lógica de negocio: verifican existencia de usuarios, posts o colecciones, preparan datos, ejecutan operaciones Prisma y normalizan respuestas internas.
+
+### Prisma / DB
+
+`api/db/db.ts` expone el cliente Prisma. Las consultas a base de datos se realizan desde los services.
+
+### Middlewares
+
+Incluyen autenticación JWT, refresh token, validaciones de usuarios/posts y manejo de rutas no encontradas.
+
+### Swagger
+
+Centraliza la documentación OpenAPI de la API. La UI permite explorar y probar endpoints desde el navegador.
+
+## Base de datos
+
+El schema Prisma define:
+
+- `User`
+- `Setting`
+- `Collection`
+- `Post`
+
+`Post.description` es un campo `Json`. Se cambió a este tipo para guardar el contenido en el formato JSON que genera Tiptap, preservando la estructura del editor, como párrafos, nodos, marks y contenido enriquecido.
+
+Las migraciones se encuentran en:
+
+```txt
+prisma/migrations
 ```
 
-### Eslint
+## Testing
 
-Este proyecto utiliza Eslint en su versión 9, dado que la versión 8 se encontrará deprecada.
+El proyecto ya incluye dependencias para Jest y Supertest, pero el script `test` todavía no ejecuta una suite real.
 
-```json
-{
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
-        "prettier"
-    ]
-}
-```
+Pendientes sugeridos:
 
-## 🧪 Testing
+- Tests unitarios de services.
+- Tests de integración para rutas principales.
+- Tests de autenticación y validaciones.
 
-A definir. Se recomienda Jest + Supertest para testear controladores y endpoints.
+## DER
 
-## 🗂 DER - Diagrama entidad-relaciones
+Nota: el DER original puede mostrar `Post.description` como texto. En la implementación actual ese campo fue migrado a `Json` para soportar el formato de contenido de Tiptap.
 
 ![DER](./captions/JournallyAPP%20-%20ERD.drawio.png)
-
