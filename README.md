@@ -67,6 +67,7 @@ Ejemplo de configuración:
 ```env
 NODE_ENV=development
 PORT=8080
+SOCKET_PORT=8001
 SERVER=localhost
 
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
@@ -80,6 +81,7 @@ SALT_ROUND=10
 Notas:
 
 - `SERVER` y `PORT` se usan para armar la URL local de Swagger.
+- `SOCKET_PORT` define el puerto del servidor WebSocket.
 - `DATABASE_URL` debe apuntar a una base PostgreSQL.
 - Los secretos JWT deben reemplazarse por valores seguros fuera de desarrollo.
 
