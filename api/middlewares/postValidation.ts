@@ -15,7 +15,7 @@ export const validatePost = [
         .trim()
         .notEmpty()
         .withMessage("El título es obligatorio."),
-    body("description").custom((value) => {
+    body("description").custom((value: unknown) => {
         if (!hasContent(value)) {
             throw new Error("La descripción es obligatoria.");
         }
@@ -31,7 +31,7 @@ export const validatePostUpdate = [
         .withMessage("El título debe ser un texto."),
     body("description")
         .optional()
-        .custom((value) => {
+        .custom((value: unknown) => {
             if (!hasContent(value)) {
                 throw new Error(
                     "La descripción debe contener un valor válido."
