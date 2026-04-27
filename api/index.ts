@@ -10,6 +10,7 @@ import notFound from "./middlewares/notFound";
 import Swagger from "swagger-jsdoc";
 import SwaggerUi from "swagger-ui-express";
 import swaggerConfig from "./swagger/swagger";
+import { setupEntrySocket } from "./sockets/postSocket";
 
 const SOCKET_PORT = Number(process.env.SOCKET_PORT ?? 8001);
 const server = express();
@@ -80,15 +81,16 @@ async function startServer() {
         console.log("API version", process.env.npm_package_version);
     });
 
-    const wss = new WebSocketServer({ port: SOCKET_PORT });
+    const wss = new WebSocketServer({
+        path: "/entries",
+        port: SOCKET_PORT,
+    });
 
     wss.on("listening", () => {
-        console.log(`Socket listening on:${SOCKET_PORT}`);
+        console.log(`Socket listening on:${SOCKET_PORT}/entries`);
     });
 
-    wss.on("connection", () => {
-        console.log("Socket client connected");
-    });
+    setupEntrySocket(wss);
 }
 
 startServer();
