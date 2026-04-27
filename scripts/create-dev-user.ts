@@ -2,8 +2,12 @@ import bcrypt from "bcrypt";
 import prisma from "../api/db/db";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUND) || 10;
-const email = process.env.DEV_USER_EMAIL || "dev@journally.local";
-const userName = process.env.DEV_USER_NAME || "devuser";
+// const email = process.env.DEV_USER_EMAIL || "dev@journally.local";
+// const userName = process.env.DEV_USER_NAME || "devuser";
+// const password = process.env.DEV_USER_PASSWORD || "dev12345";
+
+const email = process.env.DEV_USER_EMAIL || "dev2@journally.local";
+const userName = process.env.DEV_USER_NAME || "dev2user";
 const password = process.env.DEV_USER_PASSWORD || "dev12345";
 
 async function main() {
