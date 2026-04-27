@@ -170,9 +170,12 @@
  *           $ref: '#/components/schemas/PostDescription'
  *     PostUpdateRequest:
  *       type: object
+ *       description: Campos editables de un post. Enviar al menos title o description.
+ *       minProperties: 1
  *       properties:
  *         title:
  *           type: string
+ *           description: No puede quedar vacío.
  *           example: Entrada actualizada
  *         description:
  *           $ref: '#/components/schemas/PostDescription'
@@ -238,7 +241,7 @@
  *   - name: Users
  *     description: Registro, login, refresh token y administración de usuarios.
  *   - name: Posts
- *     description: Creación, búsqueda, edición y eliminación de posts.
+ *     description: Creación, búsqueda, edición/autosave y eliminación de posts.
  *   - name: Collections
  *     description: Administración de colecciones de posts.
  */
@@ -636,63 +639,6 @@
 
 /**
  * @swagger
- * /api/post/updatePost:
- *   put:
- *     summary: Actualiza el título o la descripción de un post.
- *     tags:
- *       - Posts
- *     security:
- *       - accessToken: []
- *     parameters:
- *       - in: query
- *         name: postId
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/PostUpdateRequest'
- *     responses:
- *       200:
- *         description: Post actualizado.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   $ref: '#/components/schemas/Post'
- *       400:
- *         description: Error de validación.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: Token inválido o no proporcionado.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Post no encontrado.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Error interno.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
  * /api/post/findOne:
  *   get:
  *     summary: Busca un post por id.
@@ -732,7 +678,8 @@
  * @swagger
  * /api/post/autosave:
  *   put:
- *     summary: Guarda automáticamente cambios de un post del usuario autenticado.
+ *     summary: Edita o guarda automáticamente cambios de un post.
+ *     description: Endpoint unificado para la edición manual y el autosave del editor. Actualiza title, description o ambos.
  *     tags:
  *       - Posts
  *     security:
@@ -750,9 +697,32 @@
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/PostUpdateRequest'
+ *           examples:
+ *             editTitle:
+ *               summary: Editar título
+ *               value:
+ *                 title: Entrada actualizada
+ *             autosaveContent:
+ *               summary: Autosave de contenido
+ *               value:
+ *                 description:
+ *                   type: doc
+ *                   content:
+ *                     - type: paragraph
+ *                       content:
+ *                         - type: text
+ *                           text: Contenido desde el editor
+ *             editBoth:
+ *               summary: Editar título y contenido
+ *               value:
+ *                 title: Entrada actualizada
+ *                 description:
+ *                   blocks:
+ *                     - type: paragraph
+ *                       text: Hoy escribí sobre mis metas.
  *     responses:
  *       200:
- *         description: Post guardado correctamente.
+ *         description: Post actualizado correctamente.
  *         content:
  *           application/json:
  *             schema:

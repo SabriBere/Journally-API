@@ -182,8 +182,7 @@ Todas las rutas están montadas bajo `/api`.
 | `POST`   | `/api/post/create?collectionId=1`             | Crea un post dentro de una colección | Access |
 | `POST`   | `/api/post/createOne`                         | Crea un post sin colección           | Access |
 | `PUT`    | `/api/post/updateOne?postId=1&collectionId=1` | Asigna un post a una colección       | Access |
-| `PUT`    | `/api/post/updatePost?postId=1`               | Edita título o descripción           | Access |
-| `PUT`    | `/api/post/autosave?postId=1`                 | Guarda automáticamente cambios       | Access |
+| `PUT`    | `/api/post/autosave?postId=1`                 | Edita o guarda automáticamente cambios | Access |
 | `GET`    | `/api/post/findOne?postId=1`                  | Busca un post por id                 | No     |
 | `GET`    | `/api/post`                                   | Lista posts del usuario autenticado  | Access |
 | `DELETE` | `/api/post/deletePost?postId=1`               | Elimina un post                      | Access |
