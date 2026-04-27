@@ -34,6 +34,14 @@ router.put(
     PostControllers.updatePost
 );
 
+//autosave de post, usado por el editor y por el websocket
+router.put(
+    "/autosave",
+    authenticateToken,
+    validatePostUpdate,
+    PostControllers.autoSavePost
+);
+
 //buscar un post por id
 router.get("/findOne", validatePost, PostControllers.findPost);
 
