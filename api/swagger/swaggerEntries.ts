@@ -730,6 +730,64 @@
 
 /**
  * @swagger
+ * /api/post/autosave:
+ *   put:
+ *     summary: Guarda automáticamente cambios de un post del usuario autenticado.
+ *     tags:
+ *       - Posts
+ *     security:
+ *       - accessToken: []
+ *     parameters:
+ *       - in: query
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Id del post a guardar.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PostUpdateRequest'
+ *     responses:
+ *       200:
+ *         description: Post guardado correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/Post'
+ *       400:
+ *         description: Error de validación o body vacío.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Token inválido o no proporcionado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Post no encontrado para el usuario autenticado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error interno.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
  * /api/post:
  *   get:
  *     summary: Lista los posts del usuario autenticado.

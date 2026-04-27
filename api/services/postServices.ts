@@ -236,6 +236,36 @@ class PostServices {
         }
     }
 
+    static async autoSavePost(
+        userId: number,
+        postId: number,
+        body: {
+            title?: string;
+            description?: PostDescription;
+        }
+    ) {
+        try {
+            const post = await prisma.post.findFirst({
+                where: {
+                    post_id: postId,
+                    user_id: userId,
+                },
+            });
+
+            if (!post) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Post no encontrado para el usuario autenticado.",
+                };
+            }
+
+            return await PostServices.editPost(postId, body);
+        } catch (error: any) {
+            return { status: 500, error: true, data: error.message };
+        }
+    }
+
     static async getAllPost(
         id: number,
         page: number,
