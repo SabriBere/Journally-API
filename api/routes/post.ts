@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { validatePost } from "../middlewares/postValidation";
+import {
+    validatePost,
+    validatePostUpdate,
+} from "../middlewares/postValidation";
 import { authenticateToken } from "../middlewares/authtenticatedToken";
 import PostControllers from "../controllers/postControllers";
 const router = Router();
@@ -24,7 +27,12 @@ router.post(
 router.put("/updateOne", authenticateToken, PostControllers.assingColletion);
 
 //editar un post, cambiar titulo o descripción
-router.put("/updatePost", authenticateToken, PostControllers.updatePost);
+router.put(
+    "/updatePost",
+    authenticateToken,
+    validatePostUpdate,
+    PostControllers.updatePost
+);
 
 //buscar un post por id
 router.get("/findOne", validatePost, PostControllers.findPost);

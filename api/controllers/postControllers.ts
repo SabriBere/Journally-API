@@ -85,6 +85,12 @@ class PostControllers {
     }
 
     static async updatePost(req: Request, res: Response) {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: true, data: errors.array() });
+        }
+
         const postId = Number(req.query.postId);
         const { status, error, data } = await PostServices.editPost(
             postId,
