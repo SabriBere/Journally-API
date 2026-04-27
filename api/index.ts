@@ -24,7 +24,42 @@ server.use(cookieParser());
 
 //configuración de swagger - documentación de end points
 const docs = Swagger(swaggerConfig);
-server.use("/swagger", SwaggerUi.serve, SwaggerUi.setup(docs));
+server.use(
+    "/swagger",
+    SwaggerUi.serve,
+    SwaggerUi.setup(docs, {
+        swaggerOptions: {
+            persistAuthorization: true,
+            responseInterceptor: (response: {
+                headers?: Record<string, string> & {
+                    get?: (header: string) => string | null;
+                };
+            }) => {
+                const headers = response.headers;
+                const accessToken =
+                    headers?.["x-access-token"] ??
+                    headers?.get?.("x-access-token");
+                const refreshToken =
+                    headers?.["x-refresh-token"] ??
+                    headers?.get?.("x-refresh-token");
+                const swaggerUi = (globalThis as any).ui;
+
+                if (accessToken) {
+                    swaggerUi?.preauthorizeApiKey("accessToken", accessToken);
+                }
+
+                if (refreshToken) {
+                    swaggerUi?.preauthorizeApiKey(
+                        "refreshToken",
+                        refreshToken
+                    );
+                }
+
+                return response;
+            },
+        },
+    })
+);
 
 server.use("/api", routes);
 

@@ -156,6 +156,8 @@ La configuración vive en:
 
 Swagger documenta schemas reutilizables, headers de autenticación, query params, request bodies y respuestas principales.
 
+Al ejecutar `POST /api/users/login` desde Swagger UI, el token devuelto en el header `x-access-token` queda autorizado automáticamente para probar el resto de endpoints protegidos. La autorización se conserva en el navegador mientras dure la sesión de Swagger.
+
 ## Endpoints principales
 
 Todas las rutas están montadas bajo `/api`.
