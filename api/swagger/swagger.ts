@@ -4,16 +4,17 @@ const swaggerConfig = {
         info: {
             title: "Journally App - API",
             version: "1.0.0",
-            description: "",
+            description:
+                "Documentación de la API REST de Journally para usuarios, posts y colecciones.",
         },
-        server: [
+        servers: [
             {
                 url: `http://${process.env.SERVER}:${process.env.PORT}/`,
                 description: "Local server",
             },
         ],
     },
-    apis: [`./api/swagger/*ts`],
+    apis: [`./api/swagger/*.ts`],
 };
 
 export default swaggerConfig;
