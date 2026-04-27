@@ -1,4 +1,5 @@
 import express from "express";
+import { WebSocketServer } from "ws";
 import cookieParser from "cookie-parser";
 import morgan from "morgan"; //combinar con winston o pino para logs de servidor
 import helmet from "helmet";
@@ -10,6 +11,7 @@ import Swagger from "swagger-jsdoc";
 import SwaggerUi from "swagger-ui-express";
 import swaggerConfig from "./swagger/swagger";
 
+const SOCKET_PORT = Number(process.env.SOCKET_PORT ?? 8001);
 const server = express();
 server.use(helmet());
 server.use(express.json());
@@ -49,10 +51,7 @@ server.use(
                 }
 
                 if (refreshToken) {
-                    swaggerUi?.preauthorizeApiKey(
-                        "refreshToken",
-                        refreshToken
-                    );
+                    swaggerUi?.preauthorizeApiKey("refreshToken", refreshToken);
                 }
 
                 return response;
@@ -79,6 +78,16 @@ async function startServer() {
         console.log("Enviroment", process.env.NODE_ENV);
         console.log("Server listen", process.env.PORT);
         console.log("API version", process.env.npm_package_version);
+    });
+
+    const wss = new WebSocketServer({ port: SOCKET_PORT });
+
+    wss.on("listening", () => {
+        console.log(`Socket listening on:${SOCKET_PORT}`);
+    });
+
+    wss.on("connection", () => {
+        console.log("Socket client connected");
     });
 }
 
