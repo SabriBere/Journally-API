@@ -182,7 +182,8 @@ class PostServices {
         }
     }
 
-    static async editPost(
+    static async autoSavePost(
+        userId: number,
         postId: number,
         body: {
             title?: string;
@@ -190,6 +191,21 @@ class PostServices {
         }
     ) {
         try {
+            const post = await prisma.post.findFirst({
+                where: {
+                    post_id: postId,
+                    user_id: userId,
+                },
+            });
+
+            if (!post) {
+                return {
+                    status: 404,
+                    error: true,
+                    data: "Post no encontrado para el usuario autenticado.",
+                };
+            }
+
             const dataToUpdate: Prisma.PostUpdateInput = {};
 
             const { title, description } = body;
