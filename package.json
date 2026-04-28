@@ -44,7 +44,8 @@
         "jsonwebtoken": "^9.0.2",
         "morgan": "^1.10.0",
         "swagger-jsdoc": "^6.2.8",
-        "swagger-ui-express": "^5.0.1"
+        "swagger-ui-express": "^5.0.1",
+        "ws": "^8.20.0"
     },
     "devDependencies": {
         "@types/bcrypt": "^5.0.2",
@@ -58,6 +59,7 @@
         "@types/supertest": "^6.0.3",
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.8",
+        "@types/ws": "^8.18.1",
         "eslint": "^9.28.0",
         "eslint-config-prettier": "^10.1.5",
         "jest": "^30.0.3",

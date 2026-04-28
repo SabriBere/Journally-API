@@ -14,6 +14,7 @@ Está desarrollada con **Node.js**, **Express**, **TypeScript**, **Prisma** y **
 - [Scripts disponibles](#scripts-disponibles)
 - [Documentación Swagger](#documentación-swagger)
 - [Endpoints principales](#endpoints-principales)
+- [WebSocket de entradas](#websocket-de-entradas)
 - [Arquitectura](#arquitectura)
 - [Base de datos](#base-de-datos)
 - [Testing](#testing)
@@ -67,6 +68,7 @@ Ejemplo de configuración:
 ```env
 NODE_ENV=development
 PORT=8080
+SOCKET_PORT=8001
 SERVER=localhost
 
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
@@ -80,6 +82,7 @@ SALT_ROUND=10
 Notas:
 
 - `SERVER` y `PORT` se usan para armar la URL local de Swagger.
+- `SOCKET_PORT` define el puerto del servidor WebSocket.
 - `DATABASE_URL` debe apuntar a una base PostgreSQL.
 - Los secretos JWT deben reemplazarse por valores seguros fuera de desarrollo.
 
@@ -156,41 +159,101 @@ La configuración vive en:
 
 Swagger documenta schemas reutilizables, headers de autenticación, query params, request bodies y respuestas principales.
 
+Al ejecutar `POST /api/users/login` desde Swagger UI, el token devuelto en el header `x-access-token` queda autorizado automáticamente para probar el resto de endpoints protegidos. La autorización se conserva en el navegador mientras dure la sesión de Swagger.
+
 ## Endpoints principales
 
 Todas las rutas están montadas bajo `/api`.
 
 ### Users
 
-| Método | Ruta | Descripción | Auth |
-| --- | --- | --- | --- |
-| `POST` | `/api/users/register` | Registra un usuario | No |
-| `POST` | `/api/users/login` | Inicia sesión y devuelve `x-access-token` | No |
-| `POST` | `/api/users/refresh` | Renueva tokens usando `x-refresh-token` | Refresh |
-| `PUT` | `/api/users/update` | Actualiza contraseña | Access |
-| `DELETE` | `/api/users/delete/:id` | Elimina el usuario autenticado | Access |
+| Método   | Ruta                    | Descripción                               | Auth    |
+| -------- | ----------------------- | ----------------------------------------- | ------- |
+| `POST`   | `/api/users/register`   | Registra un usuario                       | No      |
+| `POST`   | `/api/users/login`      | Inicia sesión y devuelve `x-access-token` | No      |
+| `POST`   | `/api/users/refresh`    | Renueva tokens usando `x-refresh-token`   | Refresh |
+| `PUT`    | `/api/users/update`     | Actualiza contraseña                      | Access  |
+| `DELETE` | `/api/users/delete/:id` | Elimina el usuario autenticado            | Access  |
 
 ### Posts
 
-| Método | Ruta | Descripción | Auth |
-| --- | --- | --- | --- |
-| `POST` | `/api/post/create?collectionId=1` | Crea un post dentro de una colección | Access |
-| `POST` | `/api/post/createOne` | Crea un post sin colección | Access |
-| `PUT` | `/api/post/updateOne?postId=1&collectionId=1` | Asigna un post a una colección | Access |
-| `PUT` | `/api/post/updatePost?postId=1` | Edita título o descripción | Access |
-| `GET` | `/api/post/findOne?postId=1` | Busca un post por id | No |
-| `GET` | `/api/post` | Lista posts del usuario autenticado | Access |
-| `DELETE` | `/api/post/deletePost?postId=1` | Elimina un post | Access |
+| Método   | Ruta                                          | Descripción                          | Auth   |
+| -------- | --------------------------------------------- | ------------------------------------ | ------ |
+| `POST`   | `/api/post/create?collectionId=1`             | Crea un post dentro de una colección | Access |
+| `POST`   | `/api/post/createOne`                         | Crea un post sin colección           | Access |
+| `PUT`    | `/api/post/updateOne?postId=1&collectionId=1` | Asigna un post a una colección       | Access |
+| `PUT`    | `/api/post/autosave?postId=1`                 | Edita o guarda automáticamente cambios | Access |
+| `GET`    | `/api/post/findOne?postId=1`                  | Busca un post por id                 | No     |
+| `GET`    | `/api/post`                                   | Lista posts del usuario autenticado  | Access |
+| `DELETE` | `/api/post/deletePost?postId=1`               | Elimina un post                      | Access |
 
 ### Collections
 
-| Método | Ruta | Descripción | Auth |
-| --- | --- | --- | --- |
-| `POST` | `/api/collections/createCollection` | Crea una colección | Access |
-| `GET` | `/api/collections/allCollections` | Lista colecciones del usuario | Access |
-| `GET` | `/api/collections/collectionId?id=1` | Obtiene una colección con sus posts | Access |
-| `PUT` | `/api/collections/updateCollection` | Actualiza el título de una colección | Access |
-| `DELETE` | `/api/collections/deteleCollection?id=1` | Elimina una colección | Access |
+| Método   | Ruta                                     | Descripción                          | Auth   |
+| -------- | ---------------------------------------- | ------------------------------------ | ------ |
+| `POST`   | `/api/collections/createCollection`      | Crea una colección                   | Access |
+| `GET`    | `/api/collections/allCollections`        | Lista colecciones del usuario        | Access |
+| `GET`    | `/api/collections/collectionId?id=1`     | Obtiene una colección con sus posts  | Access |
+| `PUT`    | `/api/collections/updateCollection`      | Actualiza el título de una colección | Access |
+| `DELETE` | `/api/collections/deteleCollection?id=1` | Elimina una colección                | Access |
+
+## WebSocket de entradas
+
+El servidor WebSocket escucha cambios de entradas para guardar automáticamente el contenido del editor.
+
+```txt
+ws://localhost:8001/entries?token=<accessToken>
+```
+
+El `token` debe ser el mismo JWT de acceso que devuelve `POST /api/users/login` en el header `x-access-token`.
+
+Mensaje para autosave:
+
+```json
+{
+    "type": "entry:autosave",
+    "postId": 1,
+    "title": "Entrada actualizada",
+    "description": {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Contenido desde Tiptap"
+                    }
+                ]
+            }
+        ]
+    },
+    "clientRequestId": "optional-client-id"
+}
+```
+
+Respuestas posibles:
+
+```json
+{
+    "type": "entry:saved",
+    "data": {
+        "status": 200,
+        "post": {}
+    },
+    "clientRequestId": "optional-client-id"
+}
+```
+
+```json
+{
+    "type": "entry:error",
+    "error": true,
+    "data": "Mensaje de error"
+}
+```
+
+El socket valida que el post pertenezca al usuario autenticado antes de guardar los cambios.
 
 ## Arquitectura
 
@@ -216,6 +279,8 @@ api/
 │   ├── collectionServices.ts
 │   ├── postServices.ts
 │   └── usersServices.ts
+├── sockets
+│   └── entrySocket.ts
 ├── swagger
 │   ├── swagger.ts
 │   └── swaggerEntries.ts
