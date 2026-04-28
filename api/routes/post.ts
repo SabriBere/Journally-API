@@ -26,12 +26,12 @@ router.post(
 //asignar un post a una colección, si no la tiene
 router.put("/updateOne", authenticateToken, PostControllers.assingColletion);
 
-//editar un post, cambiar titulo o descripción
+//autosave de post, usado por el editor y por el websocket
 router.put(
-    "/updatePost",
+    "/autosave",
     authenticateToken,
     validatePostUpdate,
-    PostControllers.updatePost
+    PostControllers.autoSavePost
 );
 
 //buscar un post por id
