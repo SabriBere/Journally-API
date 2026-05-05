@@ -1,4 +1,5 @@
 import express from "express";
+import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import cookieParser from "cookie-parser";
 import morgan from "morgan"; //combinar con winston o pino para logs de servidor
@@ -12,13 +13,17 @@ import SwaggerUi from "swagger-ui-express";
 import swaggerConfig from "./swagger/swagger";
 import { setupEntrySocket } from "./sockets/postSocket";
 
-const SOCKET_PORT = Number(process.env.SOCKET_PORT ?? 8001);
+const PORT = Number(process.env.PORT ?? 8080);
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",").map((origin) =>
+    origin.trim()
+);
 const server = express();
+const httpServer = createServer(server);
 server.use(helmet());
 server.use(express.json());
 server.use(
     cors({
-        origin: "http://localhost:3000", // cambiar por varible de entorno
+        origin: allowedOrigins?.length ? allowedOrigins : "http://localhost:3000",
         credentials: true,
     })
 );
@@ -75,19 +80,19 @@ async function startServer() {
         console.error("❌ Error conectando a la base de datos:", error);
     }
 
-    server.listen(process.env.PORT, () => {
+    httpServer.listen(PORT, () => {
         console.log("Enviroment", process.env.NODE_ENV);
-        console.log("Server listen", process.env.PORT);
+        console.log("Server listen", PORT);
         console.log("API version", process.env.npm_package_version);
     });
 
     const wss = new WebSocketServer({
         path: "/entries",
-        port: SOCKET_PORT,
+        server: httpServer,
     });
 
     wss.on("listening", () => {
-        console.log(`Socket listening on:${SOCKET_PORT}/entries`);
+        console.log(`Socket listening on:${PORT}/entries`);
     });
 
     setupEntrySocket(wss);
