@@ -1,0 +1,124 @@
+name: Dependencies Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 1 * *"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    name: Monthly Dependencies Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Collect dependency data
+        run: |
+          npm outdated --json > outdated.json || true
+          npm audit --json > audit.json || true
+
+      - name: Create or update report issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+
+            const readJson = (path) => {
+              try {
+                const raw = fs.readFileSync(path, "utf8").trim();
+                return raw ? JSON.parse(raw) : {};
+              } catch {
+                return {};
+              }
+            };
+
+            const outdated = readJson("outdated.json");
+            const audit = readJson("audit.json");
+            const now = new Date().toISOString().slice(0, 10);
+            const title = "Monthly dependency report";
+
+            const outdatedRows = Object.entries(outdated).map(([name, info]) => {
+              return `| \`${name}\` | \`${info.current ?? "-"}\` | \`${info.wanted ?? "-"}\` | \`${info.latest ?? "-"}\` | \`${info.type ?? "-"}\` |`;
+            });
+
+            const vulnerabilities = audit.metadata?.vulnerabilities ?? {};
+            const hasVulnerabilities = Object.values(vulnerabilities).some((count) => count > 0);
+
+            const body = [
+              `Dependency report for ${now}.`,
+              "",
+              "This issue is informational only. No dependency updates were applied automatically.",
+              "",
+              "## Outdated packages",
+              "",
+              outdatedRows.length
+                ? ["| Package | Current | Wanted | Latest | Type |", "|---|---:|---:|---:|---|", ...outdatedRows].join("\n")
+                : "No outdated packages found.",
+              "",
+              "## Vulnerabilities",
+              "",
+              hasVulnerabilities
+                ? [
+                    `- Critical: ${vulnerabilities.critical ?? 0}`,
+                    `- High: ${vulnerabilities.high ?? 0}`,
+                    `- Moderate: ${vulnerabilities.moderate ?? 0}`,
+                    `- Low: ${vulnerabilities.low ?? 0}`,
+                    `- Info: ${vulnerabilities.info ?? 0}`,
+                    "",
+                    "Run `npm audit` locally for full details."
+                  ].join("\n")
+                : "No vulnerabilities reported by `npm audit`.",
+            ].join("\n");
+
+            const { owner, repo } = context.repo;
+            try {
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: "dependencies",
+                color: "0366d6",
+                description: "Dependency updates and vulnerability reports",
+              });
+            } catch (error) {
+              if (error.status !== 422) throw error;
+            }
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              state: "open",
+              labels: "dependencies",
+            });
+            const existing = issues.find((issue) => issue.title === title);
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title,
+                body,
+                labels: ["dependencies"],
+              });
+            }
