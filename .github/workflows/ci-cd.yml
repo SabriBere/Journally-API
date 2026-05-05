@@ -65,6 +65,20 @@ jobs:
       - name: Run migrations
         run: npm run db:migrate:deploy
 
+      - name: Check for tests
+        id: tests
+        run: |
+          if find api scripts -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) | grep -q .; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No tests found yet; skipping test step."
+          fi
+
+      - name: Test
+        if: steps.tests.outputs.found == 'true'
+        run: npm run test:ci
+
       - name: Build
         run: npm run build
 

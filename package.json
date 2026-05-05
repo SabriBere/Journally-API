@@ -7,7 +7,8 @@
     "description": "Backend API for Journally an application built with Node.js, Express, Prisma, and TypeScript.",
     "main": "index.ts",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
+        "test:ci": "jest --runInBand",
         "start": "node dist/api/index.js",
         "predev": "npm run db:local:up",
         "dev": "node --env-file=.env.dev --watch --watch-preserve-output -r ts-node/register api/index.ts",
