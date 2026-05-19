@@ -1,74 +1,76 @@
-# 🪐 Journally API
+# Journally API
 
-API REST del proyecto **Journally App**, creada para gestionar usuarios, colecciones y entradas de un diario personal.
+REST API for **Journally**, a personal journaling app for managing users, collections, and journal entries.
 
-Está desarrollada con **Node.js**, **Express**, **TypeScript**, **Prisma** y **PostgreSQL**, con autenticación JWT, validaciones por middleware y documentación interactiva con Swagger/OpenAPI.
+The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and **PostgreSQL**. It includes JWT authentication, request validation middleware, Swagger/OpenAPI documentation, and a WebSocket endpoint for editor autosave.
 
-## Índice
+## Contents
 
-- [Funcionalidades](#funcionalidades)
-- [Stack](#stack)
-- [Requisitos](#requisitos)
-- [Instalación](#instalación)
-- [Variables de entorno](#variables-de-entorno)
-- [Scripts disponibles](#scripts-disponibles)
-- [Documentación Swagger](#documentación-swagger)
-- [Endpoints principales](#endpoints-principales)
-- [WebSocket de entradas](#websocket-de-entradas)
-- [Arquitectura](#arquitectura)
-- [Base de datos](#base-de-datos)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Available Scripts](#available-scripts)
+- [Database](#database)
+- [Swagger Documentation](#swagger-documentation)
+- [Main Endpoints](#main-endpoints)
+- [Entry WebSocket](#entry-websocket)
+- [Deployment](#deployment)
+- [Project Structure](#project-structure)
 - [Testing](#testing)
-- [DER](#der)
+- [ERD](#erd)
 
-## Funcionalidades
+## Features
 
-- Registro e inicio de sesión de usuarios.
-- Autenticación mediante JWT usando headers `x-access-token` y `x-refresh-token`.
-- CRUD de posts/entradas.
-- CRUD de colecciones.
-- Posts con `description` en formato JSON.
-- Listados paginados con búsqueda y ordenamiento.
-- Validación de requests con `express-validator`.
-- Documentación interactiva con Swagger UI.
-- Acceso a datos mediante Prisma ORM.
+- User registration and login.
+- JWT authentication with `x-access-token` and `x-refresh-token` headers.
+- CRUD operations for journal entries.
+- CRUD operations for collections.
+- JSON-based entry descriptions, designed to store Tiptap editor content.
+- Paginated lists with search and sorting support.
+- Request validation with `express-validator`.
+- Interactive API documentation with Swagger UI.
+- PostgreSQL access through Prisma ORM.
+- WebSocket autosave for journal entries.
 
-## Stack
+## Tech Stack
 
-- Node.js >= 20.6.0
+- Node.js `>=20.6.0`
 - Express
 - TypeScript
 - Prisma ORM
 - PostgreSQL
-- JWT
+- JSON Web Tokens
 - bcrypt
 - Swagger/OpenAPI
-- Jest + Supertest como base para testing
+- ws
+- Jest + Supertest
 
-## Requisitos
+## Requirements
 
 - Node.js `>=20.6.0`
 - npm
-- PostgreSQL local o remoto
-- Variables de entorno configuradas
+- PostgreSQL, either local or hosted
+- Environment variables configured
 
-## Instalación
+## Installation
 
 ```bash
-git clone https://github.com/<tu-usuario>/Journally-API.git
+git clone https://github.com/<your-username>/Journally-API.git
 cd Journally-API
 npm install
 ```
 
-Creá un archivo `.env.dev` para desarrollo local con las variables necesarias.
+Create a `.env.dev` file for local development.
 
-## Variables de entorno
+## Environment Variables
 
-Ejemplo de configuración:
+Local development example:
 
 ```env
 NODE_ENV=development
 PORT=8080
-SOCKET_PORT=8001
 SERVER=localhost
 
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
@@ -77,143 +79,210 @@ JWT_SECRET=your_jwt_secret_here
 JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
 
 SALT_ROUND=10
+ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-Notas:
+Production example:
 
-- `SERVER` y `PORT` se usan para armar la URL local de Swagger.
-- `SOCKET_PORT` define el puerto del servidor WebSocket.
-- `DATABASE_URL` debe apuntar a una base PostgreSQL.
-- Los secretos JWT deben reemplazarse por valores seguros fuera de desarrollo.
+```env
+NODE_ENV=production
+PORT=8080
+SERVER=your-api-domain.com
 
-## Scripts disponibles
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
+
+JWT_SECRET=replace_with_a_secure_secret
+JWT_REFRESH_SECRET=replace_with_a_secure_refresh_secret
+
+SALT_ROUND=10
+ALLOWED_ORIGINS=https://your-frontend-domain.com
+```
+
+Notes:
+
+- `DATABASE_URL` must point to a PostgreSQL database.
+- `JWT_SECRET` and `JWT_REFRESH_SECRET` must be strong production secrets.
+- `ALLOWED_ORIGINS` is a comma-separated list of allowed frontend origins.
+- `SERVER` and `PORT` are used by the Swagger server configuration.
+- The WebSocket server runs on the same HTTP server and port as the REST API. There is no separate socket port in the current implementation.
+
+## Available Scripts
 
 ```bash
 npm run dev
 ```
 
-Levanta el servidor en modo desarrollo usando `.env.dev`. Antes ejecuta `npm run db:local:up`.
+Starts the development server using `.env.dev`. The `predev` script starts the local PostgreSQL helper first.
 
 ```bash
 npm run db:local:up
 ```
 
-Levanta PostgreSQL local usando el script `scripts/local-postgres-up.sh`.
+Starts the local PostgreSQL environment through `scripts/local-postgres-up.sh`.
 
 ```bash
 npm run db:local:down
 ```
 
-Baja el PostgreSQL local usando `scripts/local-postgres-down.sh`.
+Stops the local PostgreSQL environment through `scripts/local-postgres-down.sh`.
 
 ```bash
 npm run db:migrate:dev
 ```
 
-Ejecuta las migraciones Prisma sobre el entorno `.env.dev`.
+Runs Prisma migrations against the `.env.dev` database.
+
+```bash
+npm run db:migrate:deploy
+```
+
+Runs Prisma migrations in deployment environments.
 
 ```bash
 npm run user:create:dev
 ```
 
-Crea un usuario de desarrollo usando `scripts/create-dev-user.ts`.
+Creates a development user through `scripts/create-dev-user.ts`.
 
 ```bash
 npm run generate
 ```
 
-Genera el cliente Prisma.
+Generates the Prisma client.
 
 ```bash
 npm run migrate
 ```
 
-Crea una migración Prisma de desarrollo con nombre `init`.
+Creates a new Prisma development migration.
 
 ```bash
 npm run build
 ```
 
-Compila TypeScript.
+Compiles TypeScript into `dist`.
+
+```bash
+npm start
+```
+
+Starts the compiled API from `dist/api/index.js`.
 
 ```bash
 npm test
 ```
 
-Actualmente es un placeholder y falla de forma intencional.
+Runs the Jest test suite.
 
-## Documentación Swagger
+## Database
 
-La documentación está disponible cuando el servidor está levantado:
+The Prisma schema defines the following models:
+
+- `User`
+- `Setting`
+- `Collection`
+- `Post`
+
+`Post.description` is a `Json` field. It stores rich editor content in the JSON structure produced by Tiptap, preserving paragraphs, nodes, marks, and formatted text.
+
+Database migrations live in:
+
+```txt
+prisma/migrations
+```
+
+Apply migrations locally with:
+
+```bash
+npm run db:migrate:dev
+```
+
+Apply migrations in production with:
+
+```bash
+npm run db:migrate:deploy
+```
+
+## Swagger Documentation
+
+Swagger UI is available when the server is running:
 
 ```txt
 http://localhost:8080/swagger
 ```
 
-Si usás otro `PORT`, cambiá la URL según tu `.env.dev`.
+If you use a different `PORT`, update the URL accordingly.
 
-La configuración vive en:
+Swagger configuration lives in:
 
 - `api/swagger/swagger.ts`
 - `api/swagger/swaggerEntries.ts`
 
-Swagger documenta schemas reutilizables, headers de autenticación, query params, request bodies y respuestas principales.
+Swagger documents reusable schemas, authentication headers, query parameters, request bodies, and the main API responses.
 
-Al ejecutar `POST /api/users/login` desde Swagger UI, el token devuelto en el header `x-access-token` queda autorizado automáticamente para probar el resto de endpoints protegidos. La autorización se conserva en el navegador mientras dure la sesión de Swagger.
+When calling `POST /api/users/login` from Swagger UI, the `x-access-token` and `x-refresh-token` headers returned by the API can be used to authorize protected endpoints.
 
-## Endpoints principales
+## Main Endpoints
 
-Todas las rutas están montadas bajo `/api`.
+All routes are mounted under `/api`.
 
 ### Users
 
-| Método   | Ruta                    | Descripción                               | Auth    |
-| -------- | ----------------------- | ----------------------------------------- | ------- |
-| `POST`   | `/api/users/register`   | Registra un usuario                       | No      |
-| `POST`   | `/api/users/login`      | Inicia sesión y devuelve `x-access-token` | No      |
-| `POST`   | `/api/users/refresh`    | Renueva tokens usando `x-refresh-token`   | Refresh |
-| `PUT`    | `/api/users/update`     | Actualiza contraseña                      | Access  |
-| `DELETE` | `/api/users/delete/:id` | Elimina el usuario autenticado            | Access  |
+| Method   | Route                    | Description                          | Auth    |
+| -------- | ------------------------ | ------------------------------------ | ------- |
+| `POST`   | `/api/users/register`    | Registers a user                     | No      |
+| `POST`   | `/api/users/login`       | Logs in and returns JWT headers      | No      |
+| `POST`   | `/api/users/refresh`     | Refreshes access and refresh tokens  | Refresh |
+| `PUT`    | `/api/users/update`      | Updates the authenticated password   | Access  |
+| `DELETE` | `/api/users/delete/:id`  | Deletes the authenticated user       | Access  |
 
 ### Posts
 
-| Método   | Ruta                                          | Descripción                          | Auth   |
-| -------- | --------------------------------------------- | ------------------------------------ | ------ |
-| `POST`   | `/api/post/create?collectionId=1`             | Crea un post dentro de una colección | Access |
-| `POST`   | `/api/post/createOne`                         | Crea un post sin colección           | Access |
-| `PUT`    | `/api/post/updateOne?postId=1&collectionId=1` | Asigna un post a una colección       | Access |
-| `PUT`    | `/api/post/autosave?postId=1`                 | Edita o guarda automáticamente cambios | Access |
-| `GET`    | `/api/post/findOne?postId=1`                  | Busca un post por id                 | No     |
-| `GET`    | `/api/post`                                   | Lista posts del usuario autenticado  | Access |
-| `DELETE` | `/api/post/deletePost?postId=1`               | Elimina un post                      | Access |
+| Method   | Route                                          | Description                              | Auth   |
+| -------- | ---------------------------------------------- | ---------------------------------------- | ------ |
+| `POST`   | `/api/post/create?collectionId=1`              | Creates a post inside a collection       | Access |
+| `POST`   | `/api/post/createOne`                          | Creates a post without a collection      | Access |
+| `PUT`    | `/api/post/updateOne?postId=1&collectionId=1`  | Assigns a post to a collection           | Access |
+| `PUT`    | `/api/post/autosave?postId=1`                  | Autosaves post title or description      | Access |
+| `GET`    | `/api/post/findOne?postId=1`                   | Finds one post by id                     | No     |
+| `GET`    | `/api/post`                                    | Lists the authenticated user's posts     | Access |
+| `DELETE` | `/api/post/deletePost?postId=1`                | Deletes a post                           | Access |
 
 ### Collections
 
-| Método   | Ruta                                     | Descripción                          | Auth   |
-| -------- | ---------------------------------------- | ------------------------------------ | ------ |
-| `POST`   | `/api/collections/createCollection`      | Crea una colección                   | Access |
-| `GET`    | `/api/collections/allCollections`        | Lista colecciones del usuario        | Access |
-| `GET`    | `/api/collections/collectionId?id=1`     | Obtiene una colección con sus posts  | Access |
-| `PUT`    | `/api/collections/updateCollection`      | Actualiza el título de una colección | Access |
-| `DELETE` | `/api/collections/deteleCollection?id=1` | Elimina una colección                | Access |
+| Method   | Route                                      | Description                              | Auth   |
+| -------- | ------------------------------------------ | ---------------------------------------- | ------ |
+| `POST`   | `/api/collections/createCollection`        | Creates a collection                     | Access |
+| `GET`    | `/api/collections/allCollections`          | Lists the authenticated user's collections | Access |
+| `GET`    | `/api/collections/collectionId?id=1`       | Gets one collection with its posts       | Access |
+| `PUT`    | `/api/collections/updateCollection`        | Updates a collection name                | Access |
+| `DELETE` | `/api/collections/deteleCollection?id=1`   | Deletes a collection                     | Access |
 
-## WebSocket de entradas
+## Entry WebSocket
 
-El servidor WebSocket escucha cambios de entradas para guardar automáticamente el contenido del editor.
+The WebSocket endpoint listens for entry changes and autosaves editor content.
+
+Local URL:
 
 ```txt
-ws://localhost:8001/entries?token=<accessToken>
+ws://localhost:8080/entries?token=<accessToken>
 ```
 
-El `token` debe ser el mismo JWT de acceso que devuelve `POST /api/users/login` en el header `x-access-token`.
+Production URL:
 
-Mensaje para autosave:
+```txt
+wss://your-api-domain.com/entries?token=<accessToken>
+```
+
+The `token` query parameter must be the access token returned by `POST /api/users/login` in the `x-access-token` header.
+
+Autosave message:
 
 ```json
 {
     "type": "entry:autosave",
     "postId": 1,
-    "title": "Entrada actualizada",
+    "title": "Updated entry",
     "description": {
         "type": "doc",
         "content": [
@@ -222,7 +291,7 @@ Mensaje para autosave:
                 "content": [
                     {
                         "type": "text",
-                        "text": "Contenido desde Tiptap"
+                        "text": "Content from Tiptap"
                     }
                 ]
             }
@@ -232,7 +301,7 @@ Mensaje para autosave:
 }
 ```
 
-Respuestas posibles:
+Successful response:
 
 ```json
 {
@@ -245,17 +314,61 @@ Respuestas posibles:
 }
 ```
 
+Error response:
+
 ```json
 {
     "type": "entry:error",
     "error": true,
-    "data": "Mensaje de error"
+    "data": "Error message"
 }
 ```
 
-El socket valida que el post pertenezca al usuario autenticado antes de guardar los cambios.
+The socket verifies that the post belongs to the authenticated user before saving changes.
 
-## Arquitectura
+## Deployment
+
+This API can be deployed with a hosted PostgreSQL database such as Supabase and a Node.js hosting provider such as Render or Fly.io.
+
+### Supabase
+
+Supabase can be used as the hosted PostgreSQL database.
+
+Recommended setup:
+
+- Create a Supabase project.
+- Create a dedicated database user for Prisma.
+- Use the Supabase Postgres connection string as `DATABASE_URL`.
+- Run Prisma migrations with `npm run db:migrate:deploy`.
+
+For a standard server deployment, use the Supavisor session pooler connection string when appropriate. For serverless or highly autoscaled environments, review Supabase's Prisma guidance for the transaction pooler connection string.
+
+### Render
+
+Suggested Render Web Service settings:
+
+```txt
+Build Command: npm ci && npm run generate && npm run build
+Pre-Deploy Command: npm run db:migrate:deploy
+Start Command: npm start
+```
+
+Set the production environment variables in the Render dashboard.
+
+The API will be available at the Render service URL, and the WebSocket endpoint will use the same domain:
+
+```txt
+https://your-service.onrender.com
+wss://your-service.onrender.com/entries?token=<accessToken>
+```
+
+### Fly.io
+
+Fly.io can also host the API, usually with a `fly.toml` configuration and either a generated Dockerfile or a Node.js build setup.
+
+The app must expose the port provided by `process.env.PORT`, which the current server already supports.
+
+## Project Structure
 
 ```txt
 api/
@@ -280,7 +393,7 @@ api/
 │   ├── postServices.ts
 │   └── usersServices.ts
 ├── sockets
-│   └── entrySocket.ts
+│   └── postSocket.ts
 ├── swagger
 │   ├── swagger.ts
 │   └── swaggerEntries.ts
@@ -289,7 +402,7 @@ api/
 └── index.ts
 ```
 
-El proyecto usa una arquitectura por capas:
+The project follows a layered structure:
 
 ```txt
 HTTP -> Controller -> Service -> Prisma -> Database
@@ -297,53 +410,37 @@ HTTP -> Controller -> Service -> Prisma -> Database
 
 ### Controllers
 
-Reciben la request de Express, leen `req.body`, `req.query` o `req.params`, revisan errores de validación y delegan la lógica a los services.
+Controllers receive Express requests, read `req.body`, `req.query`, or `req.params`, check validation results, and delegate business logic to services.
 
 ### Services
 
-Concentran la lógica de negocio: verifican existencia de usuarios, posts o colecciones, preparan datos, ejecutan operaciones Prisma y normalizan respuestas internas.
+Services contain the main business logic. They check entity ownership and existence, prepare data, run Prisma operations, and normalize response payloads.
 
 ### Prisma / DB
 
-`api/db/db.ts` expone el cliente Prisma. Las consultas a base de datos se realizan desde los services.
+`api/db/db.ts` exports the Prisma client used by the service layer.
 
 ### Middlewares
 
-Incluyen autenticación JWT, refresh token, validaciones de usuarios/posts y manejo de rutas no encontradas.
+Middlewares handle JWT authentication, refresh token authentication, request validation, and not-found responses.
 
 ### Swagger
 
-Centraliza la documentación OpenAPI de la API. La UI permite explorar y probar endpoints desde el navegador.
-
-## Base de datos
-
-El schema Prisma define:
-
-- `User`
-- `Setting`
-- `Collection`
-- `Post`
-
-`Post.description` es un campo `Json`. Se cambió a este tipo para guardar el contenido en el formato JSON que genera Tiptap, preservando la estructura del editor, como párrafos, nodos, marks y contenido enriquecido.
-
-Las migraciones se encuentran en:
-
-```txt
-prisma/migrations
-```
+Swagger centralizes the OpenAPI documentation and serves the browser UI.
 
 ## Testing
 
-El proyecto ya incluye dependencias para Jest y Supertest, pero el script `test` todavía no ejecuta una suite real.
+The project includes Jest and Supertest dependencies.
 
-Pendientes sugeridos:
+Suggested next tests:
 
-- Tests unitarios de services.
-- Tests de integración para rutas principales.
-- Tests de autenticación y validaciones.
+- Unit tests for services.
+- Integration tests for the main routes.
+- Authentication and validation tests.
+- WebSocket autosave tests.
 
-## DER
+## ERD
 
-Nota: el DER original puede mostrar `Post.description` como texto. En la implementación actual ese campo fue migrado a `Json` para soportar el formato de contenido de Tiptap.
+The original ERD may show `Post.description` as text. In the current implementation, that field is `Json` to support Tiptap editor content.
 
-![DER](./captions/JournallyAPP%20-%20ERD.drawio.png)
+![ERD](./captions/JournallyAPP%20-%20ERD.drawio.png)
