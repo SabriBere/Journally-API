@@ -1,5 +1,5 @@
 import express from "express";
-import apiApp from "./api/app";
+import apiApp from "./src/app";
 
 const app = express();
 
