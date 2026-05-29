@@ -21,6 +21,7 @@ app.use(
     cors({
         origin: allowedOrigins?.length ? allowedOrigins : "http://localhost:3000",
         credentials: true,
+        exposedHeaders: ["x-access-token", "x-refresh-token"],
     })
 );
 app.use(morgan("dev"));
