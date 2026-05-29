@@ -3,13 +3,14 @@
         "node": ">=20.6.0"
     },
     "name": "journallyappback",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "Backend API for Journally an application built with Node.js, Express, Prisma, and TypeScript.",
     "main": "index.ts",
     "scripts": {
         "test": "jest",
         "test:ci": "jest --runInBand",
         "start": "node dist/api/index.js",
+        "start:prod": "node --env-file=.env.prod dist/api/index.js",
         "predev": "npm run db:local:up",
         "dev": "node --env-file=.env.dev --watch --watch-preserve-output -r ts-node/register api/index.ts",
         "db:local:up": "bash scripts/local-postgres-up.sh",
