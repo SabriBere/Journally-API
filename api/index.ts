@@ -1,6 +1,7 @@
 import express from "express";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
+import { setupEntrySocket } from "./sockets/postSocket";
 import cookieParser from "cookie-parser";
 import morgan from "morgan"; //combinar con winston o pino para logs de servidor
 import helmet from "helmet";
@@ -11,12 +12,13 @@ import notFound from "./middlewares/notFound";
 import Swagger from "swagger-jsdoc";
 import SwaggerUi from "swagger-ui-express";
 import swaggerConfig from "./swagger/swagger";
-import { setupEntrySocket } from "./sockets/postSocket";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",").map((origin) =>
     origin.trim()
 );
+const API_VERSION = process.env.npm_package_version ?? "unknown";
+
 const server = express();
 const httpServer = createServer(server);
 server.use(helmet());
@@ -83,7 +85,7 @@ async function startServer() {
     httpServer.listen(PORT, () => {
         console.log("Enviroment", process.env.NODE_ENV);
         console.log("Server listen", PORT);
-        console.log("API version", process.env.npm_package_version);
+        console.log("API version", API_VERSION);
     });
 
     const wss = new WebSocketServer({
