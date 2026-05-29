@@ -3,11 +3,11 @@ name: Backend CI/CD
 on:
   pull_request:
     branches:
-      - main
+      - develop
       - master
   push:
     branches:
-      - main
+      - develop
       - master
 
 permissions:
