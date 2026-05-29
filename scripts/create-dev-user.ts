@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import prisma from "../api/db/db";
+import prisma from "../src/db/db";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUND) || 10;
 // const email = process.env.DEV_USER_EMAIL || "dev@journally.local";
