@@ -14,7 +14,7 @@ const swaggerConfig = {
             },
         ],
     },
-    apis: [`./api/swagger/*.ts`],
+    apis: [`./src/swagger/*.ts`],
 };
 
 export default swaggerConfig;

@@ -166,7 +166,7 @@ Compiles TypeScript into `dist`.
 npm start
 ```
 
-Starts the compiled API from `dist/api/index.js`.
+Starts the compiled API from `dist/src/index.js`.
 
 ```bash
 npm test
@@ -215,8 +215,8 @@ If you use a different `PORT`, update the URL accordingly.
 
 Swagger configuration lives in:
 
-- `api/swagger/swagger.ts`
-- `api/swagger/swaggerEntries.ts`
+- `src/swagger/swagger.ts`
+- `src/swagger/swaggerEntries.ts`
 
 Swagger documents reusable schemas, authentication headers, query parameters, request bodies, and the main API responses.
 
@@ -371,7 +371,7 @@ The app must expose the port provided by `process.env.PORT`, which the current s
 ## Project Structure
 
 ```txt
-api/
+src/
 ├── controllers
 │   ├── collectionsControllers.ts
 │   ├── postControllers.ts
@@ -418,7 +418,7 @@ Services contain the main business logic. They check entity ownership and existe
 
 ### Prisma / DB
 
-`api/db/db.ts` exports the Prisma client used by the service layer.
+`src/db/db.ts` exports the Prisma client used by the service layer.
 
 ### Middlewares
 

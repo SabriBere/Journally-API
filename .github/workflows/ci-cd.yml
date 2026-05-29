@@ -69,7 +69,7 @@ jobs:
       - name: Check for tests
         id: tests
         run: |
-          if find api scripts -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) | grep -q .; then
+          if find src scripts -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) | grep -q .; then
             echo "found=true" >> "$GITHUB_OUTPUT"
           else
             echo "found=false" >> "$GITHUB_OUTPUT"
