@@ -24,6 +24,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/journally_ci
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/journally_ci
       JWT_SECRET: ci_jwt_secret
       JWT_REFRESH_SECRET: ci_jwt_refresh_secret
       PORT: 8080
