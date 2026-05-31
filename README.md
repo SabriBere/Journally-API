@@ -340,7 +340,7 @@ The socket verifies that the post belongs to the authenticated user before savin
 
 ## Deployment
 
-This API can be deployed with a hosted PostgreSQL database such as Supabase and a Node.js hosting provider such as Vercel, Render, or Fly.io.
+This API uses Supabase as the hosted PostgreSQL database and is deployed on Vercel.
 
 ### Supabase
 
