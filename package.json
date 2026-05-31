@@ -3,7 +3,7 @@
         "node": ">=20.6.0"
     },
     "name": "journallyappback",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Backend API for Journally an application built with Node.js, Express, Prisma, and TypeScript.",
     "main": "index.ts",
     "scripts": {
