@@ -117,19 +117,7 @@ Notes:
 npm run dev
 ```
 
-Starts the development server using `.env.dev`. The `predev` script starts the local PostgreSQL helper first.
-
-```bash
-npm run db:local:up
-```
-
-Starts the local PostgreSQL environment through `scripts/local-postgres-up.sh`.
-
-```bash
-npm run db:local:down
-```
-
-Stops the local PostgreSQL environment through `scripts/local-postgres-down.sh`.
+Starts the development server using `.env.dev`.
 
 ```bash
 npm run db:migrate:dev
@@ -142,12 +130,6 @@ npm run db:migrate:deploy
 ```
 
 Runs Prisma migrations in deployment environments.
-
-```bash
-npm run user:create:dev
-```
-
-Creates a development user through `scripts/create-dev-user.ts`.
 
 ```bash
 npm run generate
