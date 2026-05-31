@@ -20,6 +20,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 - [Project Structure](#project-structure)
 - [Testing](#testing)
 - [ERD](#erd)
+- [Public Repository Checklist](#public-repository-checklist)
 
 ## Features
 
@@ -74,6 +75,7 @@ PORT=8080
 SERVER=localhost
 
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
 
 JWT_SECRET=your_jwt_secret_here
 JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
@@ -89,7 +91,8 @@ NODE_ENV=production
 PORT=8080
 SERVER=your-api-domain.com
 
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/postgres"
 
 JWT_SECRET=replace_with_a_secure_secret
 JWT_REFRESH_SECRET=replace_with_a_secure_refresh_secret
@@ -100,11 +103,13 @@ ALLOWED_ORIGINS=https://your-frontend-domain.com
 
 Notes:
 
-- `DATABASE_URL` must point to a PostgreSQL database.
+- `DATABASE_URL` is used by the application runtime. In Supabase serverless deployments, use the transaction pooler URL.
+- `DIRECT_URL` is used by Prisma migrations. In Supabase, use the direct/session connection URL.
 - `JWT_SECRET` and `JWT_REFRESH_SECRET` must be strong production secrets.
 - `ALLOWED_ORIGINS` is a comma-separated list of allowed frontend origins.
 - `SERVER` and `PORT` are used by the Swagger server configuration.
 - The WebSocket server runs on the same HTTP server and port as the REST API. There is no separate socket port in the current implementation.
+- Never commit real `.env` files or production credentials. The committed `.env.example` file must only contain placeholders.
 
 ## Available Scripts
 
@@ -176,6 +181,8 @@ Runs the Jest test suite.
 
 ## Database
 
+Prisma is the source of truth for the application schema. The production database is PostgreSQL hosted on Supabase.
+
 The Prisma schema defines the following models:
 
 - `User`
@@ -202,6 +209,11 @@ Apply migrations in production with:
 ```bash
 npm run db:migrate:deploy
 ```
+
+When using Supabase, keep both Prisma database URLs configured:
+
+- `DATABASE_URL`: transaction pooler URL for the application runtime.
+- `DIRECT_URL`: direct/session URL for Prisma migrations.
 
 ## Swagger Documentation
 
@@ -328,20 +340,42 @@ The socket verifies that the post belongs to the authenticated user before savin
 
 ## Deployment
 
-This API can be deployed with a hosted PostgreSQL database such as Supabase and a Node.js hosting provider such as Render or Fly.io.
+This API can be deployed with a hosted PostgreSQL database such as Supabase and a Node.js hosting provider such as Vercel, Render, or Fly.io.
 
 ### Supabase
 
-Supabase can be used as the hosted PostgreSQL database.
+Supabase is used as the hosted PostgreSQL database.
 
 Recommended setup:
 
 - Create a Supabase project.
-- Create a dedicated database user for Prisma.
-- Use the Supabase Postgres connection string as `DATABASE_URL`.
+- Use the transaction pooler connection string as `DATABASE_URL`.
+- Use the direct or session connection string as `DIRECT_URL`.
 - Run Prisma migrations with `npm run db:migrate:deploy`.
+- Store real connection strings only in local ignored `.env` files or hosting provider environment variables.
 
-For a standard server deployment, use the Supavisor session pooler connection string when appropriate. For serverless or highly autoscaled environments, review Supabase's Prisma guidance for the transaction pooler connection string.
+Example placeholders:
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/postgres"
+```
+
+Do not commit Supabase passwords, project-specific connection strings, or JWT secrets. If a secret is exposed, rotate it in Supabase/Vercel and update the local `.env` files.
+
+### Vercel
+
+Suggested Vercel settings:
+
+```txt
+Install Command: npm ci --include=dev
+Build Command: npm run build
+Output Directory: leave empty
+```
+
+Set production environment variables in the Vercel dashboard. At minimum, configure `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `ALLOWED_ORIGINS`, `SERVER`, and `SALT_ROUND`.
+
+If this API is deployed on Vercel Hobby, keep source code outside Vercel's reserved root-level `api/` functions directory unless each file is intended to be deployed as an individual Serverless Function.
 
 ### Render
 
@@ -441,6 +475,22 @@ Suggested next tests:
 
 ## ERD
 
-The original ERD may show `Post.description` as text. In the current implementation, that field is `Json` to support Tiptap editor content.
+The diagram below was exported from Supabase after applying the Prisma migrations. It reflects the current PostgreSQL tables, including Prisma's internal `_prisma_migrations` table.
 
-![ERD](./captions/JournallyAPP%20-%20ERD.drawio.png)
+![Supabase ERD](./docs/supabase-erd.png)
+
+Notes:
+
+- `_prisma_migrations` is managed by Prisma and should not be edited manually.
+- `Post.description` is stored as JSON to support Tiptap editor content.
+- The Prisma schema in `prisma/schema.prisma` remains the source of truth for application models and migrations.
+
+## Public Repository Checklist
+
+Before making this repository public:
+
+- Keep `.env`, `.env.dev`, and `.env.prod` ignored and out of Git history.
+- Use only placeholders in `.env.example`.
+- Rotate any JWT or database secrets that were shared outside the hosting provider.
+- Store production secrets only in the hosting provider dashboard.
+- Review screenshots and diagrams before committing them. Do not include connection strings, passwords, tokens, or internal project credentials.
