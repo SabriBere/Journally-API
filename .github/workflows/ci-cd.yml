@@ -5,6 +5,10 @@ on:
     branches:
       - develop
       - master
+    types:
+      - opened
+      - synchronize
+      - reopened
   push:
     branches:
       - develop
@@ -18,6 +22,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-master-source:
+    name: Validate master source
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.base.ref == 'master'
+
+    steps:
+      - name: Require develop or hotfix source branch
+        if: >
+          github.event.pull_request.head.ref != 'develop' &&
+          !startsWith(github.event.pull_request.head.ref, 'hotfix/') &&
+          !startsWith(github.event.pull_request.head.ref, 'hotFix/')
+        run: |
+          echo "Only pull requests from develop, hotfix/*, or hotFix/* can target master."
+          exit 1
+
+      - name: Source branch allowed
+        if: >
+          github.event.pull_request.head.ref == 'develop' ||
+          startsWith(github.event.pull_request.head.ref, 'hotfix/') ||
+          startsWith(github.event.pull_request.head.ref, 'hotFix/')
+        run: echo "Source branch is allowed."
+
   checks:
     name: Checks
     runs-on: ubuntu-latest
