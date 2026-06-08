@@ -14,6 +14,8 @@ class UserControllers {
         if (error) {
             if (status === 400) {
                 return res.status(400).json({ data });
+            } else if (status === 409) {
+                return res.status(409).json({ data });
             } else {
                 return res.status(500).json({ error: true, data });
             }
