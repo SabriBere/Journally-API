@@ -38,8 +38,6 @@ model Collection {
   user_id         Int
   user            User     @relation(fields: [user_id], references: [user_id])
   posts           Post[]
-
-  @@index([user_id])
 }
 
 model Post {
@@ -52,7 +50,4 @@ model Post {
   collection_id Int?
   collection    Collection? @relation(fields: [collection_id], references: [collection_id])
   user          User        @relation(fields: [user_id], references: [user_id])
-
-  @@index([user_id])
-  @@index([collection_id])
 }
