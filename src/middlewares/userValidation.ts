@@ -4,7 +4,9 @@ export const validateUser = [
     body("email").isEmail().withMessage("Email inválido"),
 
     body("user_name")
-        .optional()
+        .notEmpty()
+        .withMessage("El nombre de usuario es obligatorio")
+        .bail()
         .isLength({ min: 5 })
         .withMessage("El nombre de usuario debe tener al menos 5 caracteres"),
 
