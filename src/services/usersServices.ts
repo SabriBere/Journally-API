@@ -1,5 +1,6 @@
 import { generateRefreshToken, generateToken } from "../utils/auth";
 import jwt from "jsonwebtoken";
+import { Prisma } from "@prisma/client";
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
 
@@ -11,14 +12,40 @@ class UserService {
         user_name?: string;
     }) {
         const { email, password, user_name } = body;
-        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+        if (!user_name) {
+            return {
+                status: 400,
+                error: true,
+                data: "El nombre de usuario es obligatorio",
+            };
+        }
 
         try {
+            const userExists = await prisma.user.findFirst({
+                where: {
+                    OR: [{ email }, { user_name }],
+                },
+            });
+
+            if (userExists) {
+                return {
+                    status: 409,
+                    error: true,
+                    data:
+                        userExists.email === email
+                            ? "El email ya está registrado"
+                            : "El nombre de usuario ya está en uso",
+                };
+            }
+
+            const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
             const user = await prisma.user.create({
                 data: {
-                    email: email,
+                    email,
                     password: hashedPassword,
-                    user_name: `${user_name}`,
+                    user_name,
                 },
             });
             return {
@@ -27,6 +54,17 @@ class UserService {
                 data: { userName: user.user_name, email: user.email },
             };
         } catch (error: any) {
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === "P2002"
+            ) {
+                return {
+                    status: 409,
+                    error: true,
+                    data: "El email o nombre de usuario ya está registrado",
+                };
+            }
+
             return { status: 500, error: true, data: error.message };
         }
     }
