@@ -15,6 +15,8 @@ async function startServer() {
     } catch (error) {
         await prisma.$disconnect();
         console.error("❌ Error conectando a la base de datos:", error);
+        process.exitCode = 1;
+        return;
     }
 
     httpServer.listen(PORT, () => {
