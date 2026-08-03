@@ -18,19 +18,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.12.0
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Collect dependency data
         run: |
-          npm outdated --json > outdated.json || true
-          npm audit --json > audit.json || true
+          pnpm outdated --format json > outdated.json || true
+          pnpm audit --json > audit.json || true
 
       - name: Create or update report issue
         uses: actions/github-script@v9
@@ -53,7 +59,7 @@ jobs:
             const title = "Monthly dependency report";
 
             const outdatedRows = Object.entries(outdated).map(([name, info]) => {
-              return `| \`${name}\` | \`${info.current ?? "-"}\` | \`${info.wanted ?? "-"}\` | \`${info.latest ?? "-"}\` | \`${info.type ?? "-"}\` |`;
+              return `| \`${name}\` | \`${info.current ?? "-"}\` | \`${info.wanted ?? "-"}\` | \`${info.latest ?? "-"}\` | \`${info.dependencyType ?? info.type ?? "-"}\` |`;
             });
 
             const vulnerabilities = audit.metadata?.vulnerabilities ?? {};
@@ -80,9 +86,9 @@ jobs:
                     `- Low: ${vulnerabilities.low ?? 0}`,
                     `- Info: ${vulnerabilities.info ?? 0}`,
                     "",
-                    "Run `npm audit` locally for full details."
+                    "Run `pnpm audit` locally for full details."
                   ].join("\n")
-                : "No vulnerabilities reported by `npm audit`.",
+                : "No vulnerabilities reported by `pnpm audit`.",
             ].join("\n");
 
             const { owner, repo } = context.repo;
