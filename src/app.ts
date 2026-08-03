@@ -27,41 +27,49 @@ app.use(
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-//configuración de swagger - documentación de end points
-const docs = Swagger(swaggerConfig);
-app.use(
-    "/swagger",
-    SwaggerUi.serve,
-    SwaggerUi.setup(docs, {
-        swaggerOptions: {
-            persistAuthorization: true,
-            responseInterceptor: (response: {
-                headers?: Record<string, string> & {
-                    get?: (header: string) => string | null;
-                };
-            }) => {
-                const headers = response.headers;
-                const accessToken =
-                    headers?.["x-access-token"] ??
-                    headers?.get?.("x-access-token");
-                const refreshToken =
-                    headers?.["x-refresh-token"] ??
-                    headers?.get?.("x-refresh-token");
-                const swaggerUi = (globalThis as any).ui;
+if (process.env.NODE_ENV === "development") {
+    // Configuración de Swagger para documentación local de endpoints.
+    const docs = Swagger(swaggerConfig);
+    app.use(
+        "/swagger",
+        SwaggerUi.serve,
+        SwaggerUi.setup(docs, {
+            swaggerOptions: {
+                persistAuthorization: true,
+                responseInterceptor: (response: {
+                    headers?: Record<string, string> & {
+                        get?: (header: string) => string | null;
+                    };
+                }) => {
+                    const headers = response.headers;
+                    const accessToken =
+                        headers?.["x-access-token"] ??
+                        headers?.get?.("x-access-token");
+                    const refreshToken =
+                        headers?.["x-refresh-token"] ??
+                        headers?.get?.("x-refresh-token");
+                    const swaggerUi = (globalThis as any).ui;
 
-                if (accessToken) {
-                    swaggerUi?.preauthorizeApiKey("accessToken", accessToken);
-                }
+                    if (accessToken) {
+                        swaggerUi?.preauthorizeApiKey(
+                            "accessToken",
+                            accessToken
+                        );
+                    }
 
-                if (refreshToken) {
-                    swaggerUi?.preauthorizeApiKey("refreshToken", refreshToken);
-                }
+                    if (refreshToken) {
+                        swaggerUi?.preauthorizeApiKey(
+                            "refreshToken",
+                            refreshToken
+                        );
+                    }
 
-                return response;
+                    return response;
+                },
             },
-        },
-    })
-);
+        })
+    );
+}
 
 app.use("/api", routes);
 app.use(notFound);
