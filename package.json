@@ -1,6 +1,6 @@
 {
     "engines": {
-        "node": ">=20.6.0"
+        "node": "22.x"
     },
     "name": "journallyappback",
     "version": "1.0.1",
