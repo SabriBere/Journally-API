@@ -14,8 +14,8 @@
         "dev": "node --env-file=.env.dev --watch --watch-preserve-output -r ts-node/register src/index.ts",
         "db:migrate:dev": "node --env-file=.env.dev ./node_modules/prisma/build/index.js migrate deploy",
         "db:migrate:deploy": "prisma migrate deploy",
-        "generate": "npx prisma generate",
-        "migrate": "npx prisma migrate dev --name init",
+        "generate": "prisma generate",
+        "migrate": "prisma migrate dev --name init",
         "build": "tsc"
     },
     "author": "Sabrina Demetrio",
