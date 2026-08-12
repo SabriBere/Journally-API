@@ -51,7 +51,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 ## Requirements
 
 - Node.js `>=20.6.0`
-- npm
+- pnpm
 - PostgreSQL, either local or hosted
 - Environment variables configured
 
@@ -60,7 +60,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 ```bash
 git clone https://github.com/<your-username>/Journally-API.git
 cd Journally-API
-npm install
+pnpm install
 ```
 
 Create a `.env.dev` file for local development.
@@ -114,49 +114,49 @@ Notes:
 ## Available Scripts
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Starts the development server using `.env.dev`.
 
 ```bash
-npm run db:migrate:dev
+pnpm db:migrate:dev
 ```
 
 Runs Prisma migrations against the `.env.dev` database.
 
 ```bash
-npm run db:migrate:deploy
+pnpm db:migrate:deploy
 ```
 
 Runs Prisma migrations in deployment environments.
 
 ```bash
-npm run generate
+pnpm generate
 ```
 
 Generates the Prisma client.
 
 ```bash
-npm run migrate
+pnpm migrate
 ```
 
 Creates a new Prisma development migration.
 
 ```bash
-npm run build
+pnpm build
 ```
 
 Compiles TypeScript into `dist`.
 
 ```bash
-npm start
+pnpm start
 ```
 
 Starts the compiled API from `dist/src/index.js`.
 
 ```bash
-npm test
+pnpm test
 ```
 
 Runs the Jest test suite.
@@ -183,13 +183,13 @@ prisma/migrations
 Apply migrations locally with:
 
 ```bash
-npm run db:migrate:dev
+pnpm db:migrate:dev
 ```
 
 Apply migrations in production with:
 
 ```bash
-npm run db:migrate:deploy
+pnpm db:migrate:deploy
 ```
 
 When using Supabase, keep both Prisma database URLs configured:
@@ -333,7 +333,7 @@ Recommended setup:
 - Create a Supabase project.
 - Use the transaction pooler connection string as `DATABASE_URL`.
 - Use the direct or session connection string as `DIRECT_URL`.
-- Run Prisma migrations with `npm run db:migrate:deploy`.
+- Run Prisma migrations with `pnpm db:migrate:deploy`.
 - Store real connection strings only in local ignored `.env` files or hosting provider environment variables.
 
 Example placeholders:
@@ -350,8 +350,8 @@ Do not commit Supabase passwords, project-specific connection strings, or JWT se
 Suggested Vercel settings:
 
 ```txt
-Install Command: npm ci --include=dev
-Build Command: npm run build
+Install Command: pnpm install --frozen-lockfile
+Build Command: pnpm build
 Output Directory: leave empty
 ```
 
@@ -364,9 +364,9 @@ If this API is deployed on Vercel Hobby, keep source code outside Vercel's reser
 Suggested Render Web Service settings:
 
 ```txt
-Build Command: npm ci && npm run generate && npm run build
-Pre-Deploy Command: npm run db:migrate:deploy
-Start Command: npm start
+Build Command: pnpm install --frozen-lockfile && pnpm generate && pnpm build
+Pre-Deploy Command: pnpm db:migrate:deploy
+Start Command: pnpm start
 ```
 
 Set the production environment variables in the Render dashboard.
