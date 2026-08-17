@@ -228,39 +228,12 @@ When calling `POST /api/users/login` from Swagger UI, the `x-access-token` and `
 
 ## Main Endpoints
 
-All routes are mounted under `/api`.
-
-### Users
-
-| Method   | Route                    | Description                          | Auth    |
-| -------- | ------------------------ | ------------------------------------ | ------- |
-| `POST`   | `/api/users/register`    | Registers a user                     | No      |
-| `POST`   | `/api/users/login`       | Logs in and returns JWT headers      | No      |
-| `POST`   | `/api/users/refresh`     | Refreshes access and refresh tokens  | Refresh |
-| `PUT`    | `/api/users/update`      | Updates the authenticated password   | Access  |
-| `DELETE` | `/api/users/delete/:id`  | Deletes the authenticated user       | Access  |
-
-### Posts
-
-| Method   | Route                                          | Description                              | Auth   |
-| -------- | ---------------------------------------------- | ---------------------------------------- | ------ |
-| `POST`   | `/api/post/create?collectionId=1`              | Creates a post inside a collection       | Access |
-| `POST`   | `/api/post/createOne`                          | Creates a post without a collection      | Access |
-| `PUT`    | `/api/post/updateOne?postId=1&collectionId=1`  | Assigns a post to a collection           | Access |
-| `PUT`    | `/api/post/autosave?postId=1`                  | Autosaves post title or description      | Access |
-| `GET`    | `/api/post/findOne?postId=1`                   | Finds one post by id                     | No     |
-| `GET`    | `/api/post`                                    | Lists the authenticated user's posts     | Access |
-| `DELETE` | `/api/post/deletePost?postId=1`                | Deletes a post                           | Access |
-
-### Collections
-
-| Method   | Route                                      | Description                              | Auth   |
-| -------- | ------------------------------------------ | ---------------------------------------- | ------ |
-| `POST`   | `/api/collections/createCollection`        | Creates a collection                     | Access |
-| `GET`    | `/api/collections/allCollections`          | Lists the authenticated user's collections | Access |
-| `GET`    | `/api/collections/collectionId?id=1`       | Gets one collection with its posts       | Access |
-| `PUT`    | `/api/collections/updateCollection`        | Updates a collection name                | Access |
-| `DELETE` | `/api/collections/deteleCollection?id=1`   | Deletes a collection                     | Access |
+All REST routes are mounted under `/api`. The complete and interactive endpoint
+reference is available through Swagger UI at
+[`http://localhost:8080/swagger`](http://localhost:8080/swagger) while the API is
+running. Swagger documents the routes for users, posts, and collections,
+including authentication requirements, parameters, request bodies, response
+schemas, and examples.
 
 ## Entry WebSocket
 
