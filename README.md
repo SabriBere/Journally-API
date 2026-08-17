@@ -52,7 +52,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 
 - Node.js `>=20.6.0`
 - pnpm
-- PostgreSQL, either local or hosted
+- PostgreSQL 17 for the project-local development database, or a hosted PostgreSQL instance
 - Environment variables configured
 
 ## Installation
@@ -74,8 +74,8 @@ NODE_ENV=development
 PORT=8080
 SERVER=localhost
 
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
-DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
+DATABASE_URL="postgresql://postgres@localhost:5433/journally_dev?schema=public"
+DIRECT_URL="postgresql://postgres@localhost:5433/journally_dev?schema=public"
 
 JWT_SECRET=your_jwt_secret_here
 JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
@@ -117,7 +117,17 @@ Notes:
 pnpm dev
 ```
 
-Starts the development server using `.env.dev`.
+Starts the development server using `.env.dev`. Start PostgreSQL and apply
+pending migrations before running it.
+
+```bash
+pnpm db:start
+pnpm db:status
+pnpm db:stop
+```
+
+Starts, inspects, or stops the persistent project-local PostgreSQL instance on
+port `5433`. Its files are preserved in the ignored `.postgres-data/` directory.
 
 ```bash
 pnpm db:migrate:dev
@@ -218,39 +228,12 @@ When calling `POST /api/users/login` from Swagger UI, the `x-access-token` and `
 
 ## Main Endpoints
 
-All routes are mounted under `/api`.
-
-### Users
-
-| Method   | Route                    | Description                          | Auth    |
-| -------- | ------------------------ | ------------------------------------ | ------- |
-| `POST`   | `/api/users/register`    | Registers a user                     | No      |
-| `POST`   | `/api/users/login`       | Logs in and returns JWT headers      | No      |
-| `POST`   | `/api/users/refresh`     | Refreshes access and refresh tokens  | Refresh |
-| `PUT`    | `/api/users/update`      | Updates the authenticated password   | Access  |
-| `DELETE` | `/api/users/delete/:id`  | Deletes the authenticated user       | Access  |
-
-### Posts
-
-| Method   | Route                                          | Description                              | Auth   |
-| -------- | ---------------------------------------------- | ---------------------------------------- | ------ |
-| `POST`   | `/api/post/create?collectionId=1`              | Creates a post inside a collection       | Access |
-| `POST`   | `/api/post/createOne`                          | Creates a post without a collection      | Access |
-| `PUT`    | `/api/post/updateOne?postId=1&collectionId=1`  | Assigns a post to a collection           | Access |
-| `PUT`    | `/api/post/autosave?postId=1`                  | Autosaves post title or description      | Access |
-| `GET`    | `/api/post/findOne?postId=1`                   | Finds one post by id                     | No     |
-| `GET`    | `/api/post`                                    | Lists the authenticated user's posts     | Access |
-| `DELETE` | `/api/post/deletePost?postId=1`                | Deletes a post                           | Access |
-
-### Collections
-
-| Method   | Route                                      | Description                              | Auth   |
-| -------- | ------------------------------------------ | ---------------------------------------- | ------ |
-| `POST`   | `/api/collections/createCollection`        | Creates a collection                     | Access |
-| `GET`    | `/api/collections/allCollections`          | Lists the authenticated user's collections | Access |
-| `GET`    | `/api/collections/collectionId?id=1`       | Gets one collection with its posts       | Access |
-| `PUT`    | `/api/collections/updateCollection`        | Updates a collection name                | Access |
-| `DELETE` | `/api/collections/deteleCollection?id=1`   | Deletes a collection                     | Access |
+All REST routes are mounted under `/api`. The complete and interactive endpoint
+reference is available through Swagger UI at
+[`http://localhost:8080/swagger`](http://localhost:8080/swagger) while the API is
+running. Swagger documents the routes for users, posts, and collections,
+including authentication requirements, parameters, request bodies, response
+schemas, and examples.
 
 ## Entry WebSocket
 
