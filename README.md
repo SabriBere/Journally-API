@@ -52,7 +52,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 
 - Node.js `>=20.6.0`
 - pnpm
-- PostgreSQL, either local or hosted
+- PostgreSQL 17 for the project-local development database, or a hosted PostgreSQL instance
 - Environment variables configured
 
 ## Installation
@@ -74,8 +74,8 @@ NODE_ENV=development
 PORT=8080
 SERVER=localhost
 
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
-DIRECT_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME"
+DATABASE_URL="postgresql://postgres@localhost:5433/journally_dev?schema=public"
+DIRECT_URL="postgresql://postgres@localhost:5433/journally_dev?schema=public"
 
 JWT_SECRET=your_jwt_secret_here
 JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
@@ -117,7 +117,17 @@ Notes:
 pnpm dev
 ```
 
-Starts the development server using `.env.dev`.
+Starts the development server using `.env.dev`. Start PostgreSQL and apply
+pending migrations before running it.
+
+```bash
+pnpm db:start
+pnpm db:status
+pnpm db:stop
+```
+
+Starts, inspects, or stops the persistent project-local PostgreSQL instance on
+port `5433`. Its files are preserved in the ignored `.postgres-data/` directory.
 
 ```bash
 pnpm db:migrate:dev

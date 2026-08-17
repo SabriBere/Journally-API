@@ -5,3 +5,5 @@ allowBuilds:
   bcrypt: true
   prisma: true
   unrs-resolver: true
+overrides:
+  deepmerge-ts: 8.0.0
