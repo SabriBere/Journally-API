@@ -39,7 +39,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 
 ## Tech Stack
 
-- Node.js `>=20.6.0`
+- Node.js `22.x`
 - Express
 - TypeScript
 - Prisma ORM
