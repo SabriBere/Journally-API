@@ -94,19 +94,6 @@
  *         password:
  *           type: string
  *           example: password123
- *     UpdatePasswordRequest:
- *       type: object
- *       required:
- *         - id
- *         - newPass
- *       properties:
- *         id:
- *           type: integer
- *           example: 1
- *         newPass:
- *           type: string
- *           minLength: 8
- *           example: newPassword123
  *     PostDescription:
  *       description: Contenido JSON del post. Puede ser texto, objeto o array.
  *       oneOf:
@@ -379,58 +366,6 @@
  *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Refresh token expirado o rechazado.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Error interno.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/users/update:
- *   put:
- *     summary: Actualiza la contraseña de un usuario.
- *     tags:
- *       - Users
- *     security:
- *       - accessToken: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/UpdatePasswordRequest'
- *     responses:
- *       201:
- *         description: Contraseña actualizada.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: string
- *                   example: Actualización exitosa
- *       400:
- *         description: Datos inválidos o contraseña repetida.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: Token inválido o no proporcionado.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       404:
- *         description: Usuario no encontrado.
  *         content:
  *           application/json:
  *             schema:
