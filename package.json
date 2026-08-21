@@ -19,7 +19,7 @@
         "db:migrate:dev": "node --env-file=.env.dev ./node_modules/prisma/build/index.js migrate deploy",
         "db:migrate:deploy": "prisma migrate deploy",
         "generate": "prisma generate",
-        "migrate": "prisma migrate dev --name init",
+        "migrate": "node --env-file=.env.dev ./node_modules/prisma/build/index.js migrate dev",
         "build": "tsc"
     },
     "author": "Sabrina Demetrio",
