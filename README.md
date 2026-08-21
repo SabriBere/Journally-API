@@ -11,6 +11,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Environment Variables](#environment-variables)
+- [Frontend](#frontend)
 - [Available Scripts](#available-scripts)
 - [Database](#database)
 - [Swagger Documentation](#swagger-documentation)
@@ -51,7 +52,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 
 ## Requirements
 
-- Node.js `>=20.6.0`
+- Node.js `22.x`
 - pnpm
 - Docker Desktop (or Docker Engine with Docker Compose) for the local development database
 - Environment variables configured
@@ -59,12 +60,26 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 ## Installation
 
 ```bash
-git clone https://github.com/<your-username>/Journally-API.git
+git clone https://github.com/SabriBere/Journally-API.git
 cd Journally-API
 pnpm install
+cp .env.example .env.dev
+pnpm db:start
+pnpm generate
+pnpm db:migrate:dev
+pnpm dev
 ```
 
-Create a `.env.dev` file for local development.
+This starts PostgreSQL in Docker, applies every committed migration, and runs
+the API in watch mode. A successful startup exposes the REST API at
+`http://localhost:8080/api` and Swagger UI at
+[`http://localhost:8080/swagger`](http://localhost:8080/swagger).
+
+Stop the local database when you finish:
+
+```bash
+pnpm db:stop
+```
 
 ## Environment Variables
 
@@ -78,8 +93,8 @@ SERVER=localhost
 DATABASE_URL="postgresql://postgres:postgres@localhost:5433/journally_dev?schema=public"
 DIRECT_URL="postgresql://postgres:postgres@localhost:5433/journally_dev?schema=public"
 
-JWT_SECRET=your_jwt_secret_here
-JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
+JWT_SECRET=replace_with_a_local_access_token_secret
+JWT_REFRESH_SECRET=replace_with_a_local_refresh_token_secret
 
 SALT_ROUND=10
 ALLOWED_ORIGINS=http://localhost:3000
@@ -111,6 +126,32 @@ Notes:
 - `SERVER` and `PORT` are used by the Swagger server configuration.
 - The WebSocket server runs on the same HTTP server and port as the REST API. There is no separate socket port in the current implementation.
 - Never commit real `.env` files or production credentials. The committed `.env.example` file must only contain placeholders.
+
+Required variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `NODE_ENV` | Enables development-only behavior such as Swagger UI when set to `development`. |
+| `PORT` | HTTP and WebSocket server port. Defaults to `8080`. |
+| `SERVER` | Hostname displayed in the local Swagger server URL. |
+| `ALLOWED_ORIGINS` | Comma-separated frontend origins accepted by CORS. |
+| `SALT_ROUND` | bcrypt work factor used when hashing passwords. |
+| `DATABASE_URL` | PostgreSQL connection used by the API runtime. |
+| `DIRECT_URL` | Direct PostgreSQL connection used by Prisma migrations. |
+| `JWT_SECRET` | Secret used to sign 15-minute access tokens. |
+| `JWT_REFRESH_SECRET` | Independent secret used to sign 30-day refresh tokens. |
+
+`.env.dev`, `.env.prod`, and other real environment files are ignored by Git.
+Only `.env.example` is committed. Local Docker credentials are intentionally
+non-sensitive and must not be reused in production.
+
+## Frontend
+
+The companion Next.js application lives in
+[SabriBere/Journally-Web](https://github.com/SabriBere/Journally-Web).
+For local integration, run the frontend on an origin listed in
+`ALLOWED_ORIGINS` and configure its `NEXT_PUBLIC_API_URL` as
+`http://localhost:8080/api`.
 
 ## Available Scripts
 
@@ -160,7 +201,9 @@ Generates the Prisma client.
 pnpm migrate
 ```
 
-Creates a new Prisma development migration.
+Creates a new Prisma development migration using `.env.dev`. Prisma prompts for
+the migration name. Use this command only after intentionally changing
+`prisma/schema.prisma`; use `pnpm db:migrate:dev` to apply existing migrations.
 
 ```bash
 pnpm build
@@ -216,6 +259,12 @@ When using Supabase, keep both Prisma database URLs configured:
 
 - `DATABASE_URL`: transaction pooler URL for the application runtime.
 - `DIRECT_URL`: direct/session URL for Prisma migrations.
+
+### Seed data
+
+The project does not require or provide seed data. A fresh migration produces
+an empty database; create the first account through `POST /api/users/register`,
+Swagger UI, or the Journally Web registration screen.
 
 ## Swagger Documentation
 
