@@ -52,7 +52,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 
 - Node.js `>=20.6.0`
 - pnpm
-- PostgreSQL 17 for the project-local development database, or a hosted PostgreSQL instance
+- Docker Desktop (or Docker Engine with Docker Compose) for the local development database
 - Environment variables configured
 
 ## Installation
@@ -74,8 +74,8 @@ NODE_ENV=development
 PORT=8080
 SERVER=localhost
 
-DATABASE_URL="postgresql://postgres@localhost:5433/journally_dev?schema=public"
-DIRECT_URL="postgresql://postgres@localhost:5433/journally_dev?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/journally_dev?schema=public"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5433/journally_dev?schema=public"
 
 JWT_SECRET=your_jwt_secret_here
 JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
@@ -124,10 +124,18 @@ pending migrations before running it.
 pnpm db:start
 pnpm db:status
 pnpm db:stop
+pnpm db:logs
 ```
 
-Starts, inspects, or stops the persistent project-local PostgreSQL instance on
-port `5433`. Its files are preserved in the ignored `.postgres-data/` directory.
+Starts, inspects, stops, or follows the logs of the PostgreSQL 17 container
+defined in `compose.yaml`. The database is available on local port `5433`, and
+its data is persisted in the Docker volume `journally-api_postgres_data`.
+
+The first `pnpm db:start` downloads the PostgreSQL image and creates the
+development database automatically. Wait for the container to report a healthy
+status before applying migrations. Stopping the service preserves its data.
+Avoid `docker compose down -v` unless you intentionally want to delete the local
+development database.
 
 ```bash
 pnpm db:migrate:dev
@@ -193,6 +201,7 @@ prisma/migrations
 Apply migrations locally with:
 
 ```bash
+pnpm db:start
 pnpm db:migrate:dev
 ```
 
