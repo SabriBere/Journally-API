@@ -9,6 +9,10 @@
     "scripts": {
         "test": "jest",
         "test:ci": "jest --runInBand",
+        "lint": "eslint \"src/**/*.ts\"",
+        "typecheck": "tsc --noEmit",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
         "start": "node dist/src/index.js",
         "start:prod": "node --env-file=.env.prod dist/src/index.js",
         "dev": "node --env-file=.env.dev --watch --watch-preserve-output -r ts-node/register src/index.ts",
@@ -52,6 +56,7 @@
         "ws": "^8.20.1"
     },
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
         "@types/bcrypt": "^5.0.2",
         "@types/cookie-parser": "^1.4.10",
         "@types/cors": "^2.8.18",
@@ -64,8 +69,11 @@
         "@types/swagger-jsdoc": "^6.0.4",
         "@types/swagger-ui-express": "^4.1.8",
         "@types/ws": "^8.18.1",
+        "@typescript-eslint/eslint-plugin": "^8.67.0",
+        "@typescript-eslint/parser": "^8.67.0",
         "eslint": "^10.4.0",
         "eslint-config-prettier": "^10.1.8",
+        "globals": "^17.11.0",
         "jest": "^30.4.2",
         "prettier": "^3.8.3",
         "prisma": "^6.19.3",

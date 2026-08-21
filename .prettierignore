@@ -1,6 +1,8 @@
 #archivo a ignorar
-build
-coverage
-node_modules
-prisma
-
+node_modules/
+dist/
+coverage/
+prisma/migrations/
+.env
+.env.*
+pnpm-lock.yaml

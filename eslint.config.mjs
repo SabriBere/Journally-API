@@ -6,6 +6,9 @@ import prettier from "eslint-config-prettier";
 import globals from "globals";
 
 export default [
+    {
+        ignores: ["node_modules/**", "dist/**", "coverage/**"],
+    },
     js.configs.recommended, // incluye eslint:recommended
     {
         files: ["**/*.ts"],
