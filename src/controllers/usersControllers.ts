@@ -23,7 +23,6 @@ class UserControllers {
         res.status(200).json({ data });
     }
 
-    //enviar el token y refresh token por headers en vez de por body?
     static async login(req: Request, res: Response) {
         const { status, error, data } = await UserService.getUser(req.body);
 
@@ -38,9 +37,8 @@ class UserControllers {
         }
 
         const { accessToken, refreshToken, ...userData } = data;
-        // console.log(accessToken, 'generado');
         res.header("x-access-token", accessToken);
-        // res.header("x-refresh-token", refreshToken);
+        res.header("x-refresh-token", refreshToken);
 
         return res.status(201).json({ data: userData });
     }

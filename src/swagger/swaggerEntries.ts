@@ -295,7 +295,7 @@
  * @swagger
  * /api/users/login:
  *   post:
- *     summary: Inicia sesión y devuelve el access token por header.
+ *     summary: Inicia sesión y devuelve los tokens por headers.
  *     tags:
  *       - Users
  *     requestBody:
@@ -306,12 +306,16 @@
  *             $ref: '#/components/schemas/LoginRequest'
  *     responses:
  *       201:
- *         description: Login exitoso. El header x-access-token contiene el JWT.
+ *         description: Login exitoso. Los headers contienen los JWT de acceso y refresh.
  *         headers:
  *           x-access-token:
  *             schema:
  *               type: string
  *             description: Token JWT de acceso.
+ *           x-refresh-token:
+ *             schema:
+ *               type: string
+ *             description: Token JWT de refresh.
  *         content:
  *           application/json:
  *             schema:

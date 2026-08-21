@@ -26,6 +26,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 
 - User registration and login.
 - JWT authentication with `x-access-token` and `x-refresh-token` headers.
+- Session renewal with 15-minute access tokens and 30-day refresh tokens.
 - CRUD operations for journal entries.
 - CRUD operations for collections.
 - JSON-based entry descriptions, designed to store Tiptap editor content.
