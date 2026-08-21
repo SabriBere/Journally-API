@@ -96,11 +96,10 @@ class UserService {
                     data: "Credenciales inválidas",
                 };
             }
-            // console.log(userFinded?.user_id, 'qué usuario encuentra?')
             const accessToken = generateToken({ userId: userFinded?.user_id });
-            // const refreshToken = generateRefreshToken({
-            //     userId: userFinded.user_id,
-            // });
+            const refreshToken = generateRefreshToken({
+                userId: userFinded.user_id,
+            });
 
             return {
                 status: 201,
@@ -110,7 +109,7 @@ class UserService {
                     user: userFinded.email,
                     userName: userFinded.user_name,
                     accessToken,
-                    // refreshToken,
+                    refreshToken,
                 },
             };
         } catch (error: any) {
