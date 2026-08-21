@@ -13,7 +13,12 @@ router.post("/login", UserControllers.login);
 
 router.post("/refresh", authenticateRefresh, UserControllers.refreshToken);
 
-router.put("/update", authenticateToken, validateNewsPass, UserControllers.updatePassword);
+router.put(
+    "/update",
+    authenticateToken,
+    validateNewsPass,
+    UserControllers.updatePassword
+);
 
 router.delete("/delete/:id", authenticateToken, UserControllers.deleteUser);
 

@@ -101,10 +101,19 @@ jobs:
       - name: Run migrations
         run: pnpm run db:migrate:deploy
 
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Check formatting
+        run: pnpm run format:check
+
+      - name: Type check
+        run: pnpm run typecheck
+
       - name: Check for tests
         id: tests
         run: |
-          if find src scripts -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) | grep -q .; then
+          if find src -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) | grep -q .; then
             echo "found=true" >> "$GITHUB_OUTPUT"
           else
             echo "found=false" >> "$GITHUB_OUTPUT"
