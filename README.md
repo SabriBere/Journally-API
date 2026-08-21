@@ -129,17 +129,17 @@ Notes:
 
 Required variables:
 
-| Variable | Purpose |
-| --- | --- |
-| `NODE_ENV` | Enables development-only behavior such as Swagger UI when set to `development`. |
-| `PORT` | HTTP and WebSocket server port. Defaults to `8080`. |
-| `SERVER` | Hostname displayed in the local Swagger server URL. |
-| `ALLOWED_ORIGINS` | Comma-separated frontend origins accepted by CORS. |
-| `SALT_ROUND` | bcrypt work factor used when hashing passwords. |
-| `DATABASE_URL` | PostgreSQL connection used by the API runtime. |
-| `DIRECT_URL` | Direct PostgreSQL connection used by Prisma migrations. |
-| `JWT_SECRET` | Secret used to sign 15-minute access tokens. |
-| `JWT_REFRESH_SECRET` | Independent secret used to sign 30-day refresh tokens. |
+| Variable             | Purpose                                                                         |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `NODE_ENV`           | Enables development-only behavior such as Swagger UI when set to `development`. |
+| `PORT`               | HTTP and WebSocket server port. Defaults to `8080`.                             |
+| `SERVER`             | Hostname displayed in the local Swagger server URL.                             |
+| `ALLOWED_ORIGINS`    | Comma-separated frontend origins accepted by CORS.                              |
+| `SALT_ROUND`         | bcrypt work factor used when hashing passwords.                                 |
+| `DATABASE_URL`       | PostgreSQL connection used by the API runtime.                                  |
+| `DIRECT_URL`         | Direct PostgreSQL connection used by Prisma migrations.                         |
+| `JWT_SECRET`         | Secret used to sign 15-minute access tokens.                                    |
+| `JWT_REFRESH_SECRET` | Independent secret used to sign 30-day refresh tokens.                          |
 
 `.env.dev`, `.env.prod`, and other real environment files are ignored by Git.
 Only `.env.example` is committed. Local Docker credentials are intentionally

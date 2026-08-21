@@ -19,7 +19,9 @@ app.use(helmet());
 app.use(express.json());
 app.use(
     cors({
-        origin: allowedOrigins?.length ? allowedOrigins : "http://localhost:3000",
+        origin: allowedOrigins?.length
+            ? allowedOrigins
+            : "http://localhost:3000",
         credentials: true,
         exposedHeaders: ["x-access-token", "x-refresh-token"],
     })
