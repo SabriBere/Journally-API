@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { validateUser } from "../middlewares/userValidation";
+import { validateLogin, validateUser } from "../middlewares/userValidation";
 import {
     authenticateRefresh,
     authenticateToken,
@@ -9,9 +9,11 @@ const router = Router();
 
 router.post("/register", validateUser, UserControllers.create);
 
-router.post("/login", UserControllers.login);
+router.post("/login", validateLogin, UserControllers.login);
 
 router.post("/refresh", authenticateRefresh, UserControllers.refreshToken);
+
+router.post("/logout", authenticateRefresh, UserControllers.logout);
 
 router.delete("/delete/:id", authenticateToken, UserControllers.deleteUser);
 

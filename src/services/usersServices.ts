@@ -2,6 +2,11 @@ import { generateRefreshToken, generateToken } from "../utils/auth";
 import { Prisma } from "@prisma/client";
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
+import { createHash } from "crypto";
+
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const hashToken = (token: string) =>
+    createHash("sha256").update(token).digest("hex");
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUND) || 10;
 class UserService {
@@ -77,10 +82,15 @@ class UserService {
             });
 
             if (!userFinded) {
+                // Ejecutar bcrypt también para usuarios inexistentes reduce diferencias de tiempo.
+                await bcrypt.compare(
+                    body.password,
+                    "$2b$10$C6UzMDM.H6dfI/f/IKcEe.8LzXbFjM/Gp6VfHqKqVxqTqTqTqTqTq"
+                );
                 return {
-                    status: 404,
+                    status: 401,
                     error: true,
-                    data: "Usuario no encontrado",
+                    data: "Credenciales inválidas",
                 };
             }
 
@@ -98,6 +108,13 @@ class UserService {
             const accessToken = generateToken({ userId: userFinded?.user_id });
             const refreshToken = generateRefreshToken({
                 userId: userFinded.user_id,
+            });
+            await prisma.refreshSession.create({
+                data: {
+                    token_hash: hashToken(refreshToken),
+                    expires_at: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+                    user_id: userFinded.user_id,
+                },
             });
 
             return {
@@ -123,6 +140,23 @@ class UserService {
     static async verifyRefreshToken(req: any) {
         try {
             const { userId } = req.user;
+            const presentedToken = req.refreshToken as string;
+
+            const session = await prisma.refreshSession.findUnique({
+                where: { token_hash: hashToken(presentedToken) },
+            });
+
+            if (
+                !session ||
+                session.user_id !== userId ||
+                session.expires_at <= new Date()
+            ) {
+                return {
+                    status: 403,
+                    error: true,
+                    data: "Refresh token inválido o reutilizado",
+                };
+            }
 
             const user = await prisma.user.findUnique({
                 where: { user_id: userId },
@@ -140,6 +174,19 @@ class UserService {
             const newRefreshToken = generateRefreshToken({
                 userId: user.user_id,
             });
+
+            await prisma.$transaction([
+                prisma.refreshSession.delete({
+                    where: { session_id: session.session_id },
+                }),
+                prisma.refreshSession.create({
+                    data: {
+                        token_hash: hashToken(newRefreshToken),
+                        expires_at: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+                        user_id: user.user_id,
+                    },
+                }),
+            ]);
 
             return {
                 status: 201,
@@ -160,6 +207,12 @@ class UserService {
                 data: "Refresh token inválido o expirado",
             };
         }
+    }
+
+    static async revokeRefreshToken(token: string) {
+        await prisma.refreshSession.deleteMany({
+            where: { token_hash: hashToken(token) },
+        });
     }
 
     static async eraserUser(id: number) {

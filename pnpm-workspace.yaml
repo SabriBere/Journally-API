@@ -7,3 +7,6 @@ allowBuilds:
     unrs-resolver: true
 overrides:
     deepmerge-ts: 8.0.0
+    fast-uri: ">=3.1.6"
+    js-yaml@^4: ">=4.3.2"
+    qs: ">=6.16.0"

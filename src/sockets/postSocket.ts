@@ -28,8 +28,10 @@ function sendJson(socket: WebSocket, response: SocketResponse) {
 }
 
 function getTokenFromRequest(req: IncomingMessage) {
-    const requestUrl = new URL(req.url ?? "", "ws://localhost");
-    return requestUrl.searchParams.get("token");
+    const protocols = req.headers["sec-websocket-protocol"]
+        ?.split(",")
+        .map((value) => value.trim());
+    return protocols?.[0] === "access-token" ? protocols[1] : undefined;
 }
 
 function getUserIdFromToken(token: string) {
@@ -56,6 +58,15 @@ function parseSocketMessage(message: RawData): EntrySocketMessage {
 
     if (parsed.title === undefined && parsed.description === undefined) {
         throw new Error("No se recibieron campos para guardar.");
+    }
+
+    if (
+        parsed.title !== undefined &&
+        (typeof parsed.title !== "string" || parsed.title.length > 200)
+    ) {
+        throw new Error(
+            "El título debe ser texto y no superar 200 caracteres."
+        );
     }
 
     return {
@@ -103,6 +114,19 @@ async function handleAutosave(
 
 export function setupEntrySocket(wss: WebSocketServer) {
     wss.on("connection", (socket, req) => {
+        const allowedOrigins = (
+            process.env.ALLOWED_ORIGINS ?? "http://localhost:3000"
+        )
+            .split(",")
+            .map((origin) => origin.trim());
+        if (
+            !req.headers.origin ||
+            !allowedOrigins.includes(req.headers.origin)
+        ) {
+            socket.close(1008, "Origen no permitido");
+            return;
+        }
+
         const token = getTokenFromRequest(req);
 
         if (!token) {
@@ -129,8 +153,21 @@ export function setupEntrySocket(wss: WebSocketServer) {
             data: "Socket de entradas conectado.",
         });
 
+        let messageCount = 0;
+        let windowStartedAt = Date.now();
+
         socket.on("message", async (rawMessage) => {
             try {
+                const now = Date.now();
+                if (now - windowStartedAt >= 1000) {
+                    windowStartedAt = now;
+                    messageCount = 0;
+                }
+                messageCount += 1;
+                if (messageCount > 20) {
+                    socket.close(1008, "Límite de mensajes excedido");
+                    return;
+                }
                 const message = parseSocketMessage(rawMessage);
                 await handleAutosave(socket, userId, message);
             } catch (error: any) {

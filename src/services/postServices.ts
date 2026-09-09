@@ -27,8 +27,8 @@ class PostServices {
                 };
             }
 
-            const collectionExists = await prisma.collection.findUnique({
-                where: { collection_id: collectionId },
+            const collectionExists = await prisma.collection.findFirst({
+                where: { collection_id: collectionId, user_id: userId },
             });
 
             if (!collectionExists) {
@@ -106,11 +106,15 @@ class PostServices {
     }
 
     //depende de que haya una colección existente para probar bien
-    static async putInCollection(postId: number, collectionId: number) {
+    static async putInCollection(
+        userId: number,
+        postId: number,
+        collectionId: number
+    ) {
         try {
             //buscar por id el post
-            const postExists = await prisma.post.findUnique({
-                where: { post_id: postId },
+            const postExists = await prisma.post.findFirst({
+                where: { post_id: postId, user_id: userId },
             });
 
             if (!postExists) {
@@ -121,9 +125,10 @@ class PostServices {
                 };
             }
 
-            const collectionExists = await prisma.collection.findUnique({
+            const collectionExists = await prisma.collection.findFirst({
                 where: {
                     collection_id: collectionId,
+                    user_id: userId,
                 },
             });
 
@@ -156,11 +161,12 @@ class PostServices {
         }
     }
 
-    static async onePost(postId: number) {
+    static async onePost(userId: number, postId: number) {
         try {
             const postFound = await prisma.post.findFirst({
                 where: {
                     post_id: postId,
+                    user_id: userId,
                 },
             });
 
@@ -318,15 +324,16 @@ class PostServices {
         }
     }
 
-    static async eraserPost(postId: number) {
+    static async eraserPost(userId: number, postId: number) {
         try {
-            const deletedPost = await prisma.post.delete({
+            const deletedPost = await prisma.post.deleteMany({
                 where: {
                     post_id: postId,
+                    user_id: userId,
                 },
             });
 
-            if (!deletedPost) {
+            if (deletedPost.count === 0) {
                 return {
                     status: 404,
                     error: true,

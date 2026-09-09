@@ -8,6 +8,7 @@ import notFound from "./middlewares/notFound";
 import Swagger from "swagger-jsdoc";
 import SwaggerUi from "swagger-ui-express";
 import swaggerConfig from "./swagger/swagger";
+import { rateLimit } from "express-rate-limit";
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",").map((origin) =>
     origin.trim()
@@ -16,7 +17,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",").map((origin) =>
 const app = express();
 
 app.use(helmet());
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 app.use(
     cors({
         origin: allowedOrigins?.length
@@ -29,6 +30,29 @@ app.use(
 app.use(morgan("dev"));
 app.use(cookieParser());
 
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 500,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    message: {
+        error: true,
+        data: "Demasiados intentos. Intente nuevamente más tarde.",
+    },
+});
+
+app.use("/api", apiLimiter);
+app.use("/api/users/login", authLimiter);
+app.use("/api/users/register", authLimiter);
+app.use("/api/users/refresh", authLimiter);
+
 if (process.env.NODE_ENV === "development") {
     // Configuración de Swagger para documentación local de endpoints.
     const docs = Swagger(swaggerConfig);
@@ -40,7 +64,7 @@ if (process.env.NODE_ENV === "development") {
                 persistAuthorization: true,
                 responseInterceptor: (response: {
                     headers?: Record<string, string> & {
-                        get?: (header: string) => string | null;
+                        get?: CallableFunction;
                     };
                 }) => {
                     const headers = response.headers;

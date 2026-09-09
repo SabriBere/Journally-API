@@ -31,20 +31,24 @@ class ColletionServices {
         }
     }
 
-    static async update(body: { title: string; collectionId: number }) {
+    static async update(
+        body: { title: string; collectionId: number },
+        userId: number
+    ) {
         try {
             const { title, collectionId } = body;
 
-            const updatedCollection = await prisma.collection.update({
+            const updatedCollection = await prisma.collection.updateMany({
                 where: {
                     collection_id: collectionId,
+                    user_id: userId,
                 },
                 data: {
                     title: title,
                 },
             });
 
-            if (!updatedCollection) {
+            if (updatedCollection.count === 0) {
                 return {
                     status: 404,
                     error: true,
@@ -62,11 +66,12 @@ class ColletionServices {
         }
     }
 
-    static async eraserCollection(collectionId: number) {
+    static async eraserCollection(userId: number, collectionId: number) {
         try {
-            const collection = await prisma.collection.findUnique({
+            const collection = await prisma.collection.findFirst({
                 where: {
                     collection_id: collectionId,
+                    user_id: userId,
                 },
             });
 
@@ -77,9 +82,10 @@ class ColletionServices {
                     data: "No se encontró la colección",
                 };
             }
-            const deleteCollection = await prisma.collection.delete({
+            const deleteCollection = await prisma.collection.deleteMany({
                 where: {
                     collection_id: collectionId,
+                    user_id: userId,
                 },
             });
 
@@ -148,11 +154,12 @@ class ColletionServices {
         }
     }
 
-    static async findCollection(collectionId: number) {
+    static async findCollection(userId: number, collectionId: number) {
         try {
-            const collectionFound = await prisma.collection.findUnique({
+            const collectionFound = await prisma.collection.findFirst({
                 where: {
                     collection_id: collectionId,
+                    user_id: userId,
                 },
                 include: {
                     posts: true,
