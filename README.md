@@ -268,16 +268,23 @@ The WebSocket endpoint listens for entry changes and autosaves editor content.
 Local URL:
 
 ```txt
-ws://localhost:8080/entries?token=<accessToken>
+ws://localhost:8080/entries
 ```
 
 Production URL:
 
 ```txt
-wss://your-api-domain.com/entries?token=<accessToken>
+wss://your-api-domain.com/entries
 ```
 
-The `token` query parameter must be the access token returned by `POST /api/users/login` in the `x-access-token` header.
+Send the access token as the second WebSocket subprotocol so it is not exposed in URLs or proxy logs:
+
+```ts
+new WebSocket("wss://your-api-domain.com/entries", [
+    "access-token",
+    accessToken,
+]);
+```
 
 Autosave message:
 

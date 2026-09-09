@@ -14,7 +14,9 @@ export const validatePost = [
         .withMessage("El título debe ser un texto.")
         .trim()
         .notEmpty()
-        .withMessage("El título es obligatorio."),
+        .withMessage("El título es obligatorio.")
+        .isLength({ max: 200 })
+        .withMessage("El título no puede superar 200 caracteres."),
     body("description").custom((value: unknown) => {
         if (!hasContent(value)) {
             throw new Error("La descripción es obligatoria.");
@@ -28,7 +30,9 @@ export const validatePostUpdate = [
     body("title")
         .optional()
         .isString()
-        .withMessage("El título debe ser un texto."),
+        .withMessage("El título debe ser un texto.")
+        .isLength({ max: 200 })
+        .withMessage("El título no puede superar 200 caracteres."),
     body("description")
         .optional()
         .custom((value: unknown) => {

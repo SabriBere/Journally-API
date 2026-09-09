@@ -1,12 +1,19 @@
 import { Router } from "express";
 import { authenticateToken } from "../middlewares/authtenticatedToken";
 import CollectionsControllers from "../controllers/collectionsControllers";
+import {
+    validateCollectionCreate,
+    validateCollectionId,
+    validateCollectionUpdate,
+} from "../middlewares/collectionValidation";
+import { validatePagination } from "../middlewares/queryValidation";
 const router = Router();
 
 //crear una colección
 router.post(
     "/createCollection",
     authenticateToken,
+    validateCollectionCreate,
     CollectionsControllers.createCollection
 );
 
@@ -14,6 +21,7 @@ router.post(
 router.get(
     "/allCollections",
     authenticateToken,
+    validatePagination,
     CollectionsControllers.listOfCollections
 );
 
@@ -21,6 +29,7 @@ router.get(
 router.get(
     "/collectionId",
     authenticateToken,
+    validateCollectionId,
     CollectionsControllers.oneCollection
 );
 
@@ -28,6 +37,7 @@ router.get(
 router.put(
     "/updateCollection",
     authenticateToken,
+    validateCollectionUpdate,
     CollectionsControllers.updateName
 );
 
@@ -35,6 +45,7 @@ router.put(
 router.delete(
     "/deteleCollection",
     authenticateToken,
+    validateCollectionId,
     CollectionsControllers.deleteCollection
 );
 

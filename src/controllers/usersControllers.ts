@@ -24,15 +24,19 @@ class UserControllers {
     }
 
     static async login(req: Request, res: Response) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: true, data: errors.array() });
+        }
         const { status, error, data } = await UserService.getUser(req.body);
 
         if (error) {
             if (status === 401) {
                 return res.status(401).json({ data });
-            } else if (status === 404) {
-                return res.status(404).json({ data });
             } else {
-                return res.status(500).json({ error: true, data });
+                return res
+                    .status(500)
+                    .json({ error: true, data: "Error interno del servidor" });
             }
         }
 
@@ -53,7 +57,9 @@ class UserControllers {
             } else if (status === 403) {
                 return res.status(403).json({ error: true, data });
             } else {
-                return res.status(500).json({ error: true, data });
+                return res
+                    .status(500)
+                    .json({ error: true, data: "Error interno del servidor" });
             }
         }
 
@@ -65,6 +71,11 @@ class UserControllers {
         return res.status(201).json({ data: user });
     }
 
+    static async logout(req: Request, res: Response) {
+        await UserService.revokeRefreshToken((req as any).refreshToken);
+        return res.status(204).send();
+    }
+
     static async deleteUser(req: Request, res: Response) {
         const id = (req as any).user?.userId;
         const { status, error, data } = await UserService.eraserUser(id);
@@ -73,7 +84,9 @@ class UserControllers {
             if (status === 404) {
                 return res.status(404).json({ data });
             } else {
-                return res.status(500).json({ error: true, data });
+                return res
+                    .status(500)
+                    .json({ error: true, data: "Error interno del servidor" });
             }
         }
         res.status(204).json({ data });

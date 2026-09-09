@@ -21,11 +21,13 @@ export function authenticateToken(
         }
 
         //modificar logica para access y refresh
-        const decodedAccess = jwt.verify(accessToken!, JWT_SECRET);
+        const decodedAccess = jwt.verify(accessToken, JWT_SECRET, {
+            algorithms: ["HS256"],
+        });
 
         (req as any).user = decodedAccess;
         next();
-    } catch (error) {
+    } catch {
         return res
             .status(401)
             .json({ error: true, data: "Token inválido o expirado" });
@@ -46,12 +48,15 @@ export function authenticateRefresh(
                 .json({ error: true, data: "Refresh no proporcionado" });
         }
 
-        const decodedRefresh = jwt.verify(refreshToken!, JWT_REFRESH_SECRET);
+        const decodedRefresh = jwt.verify(refreshToken, JWT_REFRESH_SECRET, {
+            algorithms: ["HS256"],
+        });
 
         (req as any).user = decodedRefresh;
+        (req as any).refreshToken = refreshToken;
 
         next();
-    } catch (error) {
+    } catch {
         return res
             .status(401)
             .json({ error: true, data: "Token refresh invalido o expirado" });
