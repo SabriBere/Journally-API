@@ -24,7 +24,8 @@
         "db:migrate:deploy": "prisma migrate deploy",
         "generate": "prisma generate",
         "migrate": "node --env-file=.env.dev ./node_modules/prisma/build/index.js migrate dev",
-        "build": "tsc"
+        "build": "prisma generate && tsc",
+        "vercel-build": "prisma generate && prisma migrate deploy && tsc"
     },
     "author": "Sabrina Demetrio",
     "license": "MIT",
