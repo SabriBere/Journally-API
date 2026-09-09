@@ -28,6 +28,9 @@ async function startServer() {
     const wss = new WebSocketServer({
         path: "/entries",
         server: httpServer,
+        maxPayload: 64 * 1024,
+        handleProtocols: (protocols) =>
+            protocols.has("access-token") ? "access-token" : false,
     });
 
     wss.on("listening", () => {
