@@ -7,7 +7,7 @@
     "description": "Backend API for Journally an application built with Node.js, Express, Prisma, and TypeScript.",
     "main": "index.ts",
     "scripts": {
-        "test": "jest",
+        "test": "node --env-file=.env.test ./node_modules/jest/bin/jest.js",
         "test:ci": "jest --runInBand",
         "lint": "eslint \"src/**/*.ts\"",
         "typecheck": "tsc --noEmit",
@@ -25,7 +25,12 @@
         "generate": "prisma generate",
         "migrate": "node --env-file=.env.dev ./node_modules/prisma/build/index.js migrate dev",
         "build": "prisma generate && tsc",
-        "vercel-build": "prisma generate && prisma migrate deploy && tsc"
+        "vercel-build": "prisma generate && prisma migrate deploy && tsc",
+        "test:watch": "pnpm test --watchAll",
+        "test:coverage": "pnpm test --coverage",
+        "db:test:start": "docker compose -f compose.test.yaml up -d --wait",
+        "db:test:stop": "docker compose -f compose.test.yaml down",
+        "db:test:push": "node --env-file=.env.test ./node_modules/prisma/build/index.js db push --skip-generate"
     },
     "author": "Sabrina Demetrio",
     "license": "MIT",
@@ -59,6 +64,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@jest/globals": "^30.5.1",
         "@types/bcrypt": "^5.0.2",
         "@types/cookie-parser": "^1.4.10",
         "@types/cors": "^2.8.18",
