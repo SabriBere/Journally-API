@@ -267,4 +267,3 @@ describe("DELETE /api/collections/deteleCollection", () => {
 afterAll(async () => {
     await prisma.$disconnect();
 });
-
