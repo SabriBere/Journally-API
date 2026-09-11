@@ -1,13 +1,18 @@
 import type { Config } from "jest";
 
 const config: Config = {
-    preset: "ts-jest",
     testEnvironment: "node",
     testMatch: ["**/?(*.)+(spec|test).ts"],
+    maxWorkers: 1,
     watchman: false,
-    globals: {
-        "ts-jest": { diagnostics: { ignoreCodes: [151002] } },
+    transform: {
+        "^.+\\.tsx?$": ["ts-jest", { diagnostics: { ignoreCodes: [151002] } }],
     },
+    collectCoverageFrom: [
+        "src/controllers/**/*.ts",
+        "src/services/**/*.ts",
+        "src/middlewares/**/*.ts",
+    ],
 };
 
 export default config;
