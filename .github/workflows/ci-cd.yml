@@ -52,10 +52,11 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      NODE_ENV: test
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/journally_ci
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/journally_ci
-      JWT_SECRET: ci_jwt_secret
-      JWT_REFRESH_SECRET: ci_jwt_refresh_secret
+      JWT_SECRET: ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-at-least-32-characters
       PORT: 8080
       ALLOWED_ORIGINS: http://localhost:3000
       SERVER: localhost
@@ -110,18 +111,7 @@ jobs:
       - name: Type check
         run: pnpm run typecheck
 
-      - name: Check for tests
-        id: tests
-        run: |
-          if find src -type f \( -name "*.test.ts" -o -name "*.spec.ts" \) | grep -q .; then
-            echo "found=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "found=false" >> "$GITHUB_OUTPUT"
-            echo "No tests found yet; skipping test step."
-          fi
-
       - name: Test
-        if: steps.tests.outputs.found == 'true'
         run: pnpm run test:ci
 
       - name: Build

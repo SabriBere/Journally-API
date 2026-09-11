@@ -7,6 +7,7 @@
         "outDir": "dist",
         "strict": true,
         "lib": ["esnext"],
+        "types": ["node", "jest"],
         "esModuleInterop": true
     }
 }
