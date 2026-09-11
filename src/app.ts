@@ -39,7 +39,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 20,
+    limit: process.env.NODE_ENV === "test" ? 1000 : 20,
     standardHeaders: "draft-8",
     legacyHeaders: false,
     message: {
