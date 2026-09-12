@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import ColletionServices from "../services/collectionServices";
+import CollectionServices from "../services/collectionServices";
 import { validationResult } from "express-validator";
 
 class CollectionsControllers {
@@ -13,7 +13,7 @@ class CollectionsControllers {
     static async createCollection(req: Request, res: Response) {
         if (CollectionsControllers.hasValidationErrors(req, res)) return;
         const userId = (req as any).user?.userId;
-        const { status, error, data } = await ColletionServices.create(
+        const { status, error, data } = await CollectionServices.create(
             req.body,
             userId
         );
@@ -31,7 +31,7 @@ class CollectionsControllers {
     static async updateName(req: Request, res: Response) {
         if (CollectionsControllers.hasValidationErrors(req, res)) return;
         const userId = (req as any).user?.userId;
-        const { status, error, data } = await ColletionServices.update(
+        const { status, error, data } = await CollectionServices.update(
             req.body,
             userId
         );
@@ -52,7 +52,7 @@ class CollectionsControllers {
         const collectionId = Number(req.query.id);
 
         const { status, error, data } =
-            await ColletionServices.eraserCollection(userId, collectionId);
+            await CollectionServices.deleteCollection(userId, collectionId);
 
         if (error) {
             if (status === 404) {
@@ -74,7 +74,7 @@ class CollectionsControllers {
         const orderDirection =
             (req.query.orderDirection as string | undefined) ?? "desc";
 
-        const { status, error, data } = await ColletionServices.allCollections(
+        const { status, error, data } = await CollectionServices.allCollections(
             id,
             page,
             searchText,
@@ -97,7 +97,7 @@ class CollectionsControllers {
         const userId = (req as any).user?.userId;
         const collectionId = Number(req.query.id);
 
-        const { status, error, data } = await ColletionServices.findCollection(
+        const { status, error, data } = await CollectionServices.findCollection(
             userId,
             collectionId
         );

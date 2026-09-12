@@ -37,7 +37,7 @@ class PostControllers {
 
         const userId = (req as any).user?.userId;
         const { status, error, data } =
-            await PostServices.createWithOutCollection(userId, req.body);
+            await PostServices.createWithoutCollection(userId, req.body);
 
         if (error) {
             if (status === 404) {
@@ -51,7 +51,7 @@ class PostControllers {
         res.status(201).json({ data });
     }
 
-    static async assingColletion(req: Request, res: Response) {
+    static async assignCollection(req: Request, res: Response) {
         const errors = validationResult(req);
         if (!errors.isEmpty())
             return res.status(400).json({ error: true, data: errors.array() });
@@ -170,7 +170,7 @@ class PostControllers {
             return res.status(400).json({ error: true, data: errors.array() });
         const userId = (req as any).user?.userId;
         const postId = Number(req.query.postId);
-        const { status, error, data } = await PostServices.eraserPost(
+        const { status, error, data } = await PostServices.deletePost(
             userId,
             postId
         );

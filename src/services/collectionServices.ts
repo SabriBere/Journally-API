@@ -1,6 +1,6 @@
 import prisma from "../db/db";
 
-class ColletionServices {
+class CollectionServices {
     static async create(
         body: {
             collectionName: string;
@@ -66,7 +66,7 @@ class ColletionServices {
         }
     }
 
-    static async eraserCollection(userId: number, collectionId: number) {
+    static async deleteCollection(userId: number, collectionId: number) {
         try {
             const collection = await prisma.collection.findFirst({
                 where: {
@@ -189,4 +189,4 @@ class ColletionServices {
     }
 }
 
-export default ColletionServices;
+export default CollectionServices;
