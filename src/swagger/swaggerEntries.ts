@@ -998,7 +998,7 @@
 
 /**
  * @swagger
- * /api/collections/deteleCollection:
+ * /api/collections/deleteCollection:
  *   delete:
  *     summary: Elimina una colección por id.
  *     tags:

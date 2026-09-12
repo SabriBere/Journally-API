@@ -203,12 +203,12 @@ describe("PUT /api/collections/updateCollection", () => {
     });
 });
 
-describe("DELETE /api/collections/deteleCollection", () => {
+describe("DELETE /api/collections/deleteCollection", () => {
     test("Deletes a collection", async () => {
         const collection = await findCollection();
         const response = await request(app)
             .delete(
-                `/api/collections/deteleCollection?id=${collection.collection_id}`
+                `/api/collections/deleteCollection?id=${collection.collection_id}`
             )
             .set("x-access-token", await login());
 
@@ -234,7 +234,7 @@ describe("DELETE /api/collections/deteleCollection", () => {
         });
         const response = await request(app)
             .delete(
-                `/api/collections/deteleCollection?id=${collection.collection_id}`
+                `/api/collections/deleteCollection?id=${collection.collection_id}`
             )
             .set("x-access-token", await login());
 
@@ -250,7 +250,7 @@ describe("DELETE /api/collections/deteleCollection", () => {
         const collection = await findCollection(1);
         const response = await request(app)
             .delete(
-                `/api/collections/deteleCollection?id=${collection.collection_id}`
+                `/api/collections/deleteCollection?id=${collection.collection_id}`
             )
             .set("x-access-token", await login());
 
@@ -261,6 +261,22 @@ describe("DELETE /api/collections/deteleCollection", () => {
                 where: { collection_id: collection.collection_id },
             })
         ).not.toBeNull();
+    });
+
+    test("Supports the legacy misspelled route as a compatibility alias", async () => {
+        const collection = await findCollection();
+        const response = await request(app)
+            .delete(
+                `/api/collections/deteleCollection?id=${collection.collection_id}`
+            )
+            .set("x-access-token", await login());
+
+        expect(response.status).toBe(204);
+        expect(
+            await prisma.collection.findUnique({
+                where: { collection_id: collection.collection_id },
+            })
+        ).toBeNull();
     });
 });
 
