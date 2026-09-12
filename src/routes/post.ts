@@ -3,7 +3,7 @@ import {
     validatePost,
     validatePostUpdate,
 } from "../middlewares/postValidation";
-import { authenticateToken } from "../middlewares/authtenticatedToken";
+import { authenticateToken } from "../middlewares/authenticatedToken";
 import PostControllers from "../controllers/postControllers";
 import {
     validateCollectionQueryId,
@@ -35,7 +35,7 @@ router.put(
     "/updateOne",
     authenticateToken,
     validatePostAndCollectionIds,
-    PostControllers.assingColletion
+    PostControllers.assignCollection
 );
 
 //autosave de post, usado por el editor y por el websocket

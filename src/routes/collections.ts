@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticateToken } from "../middlewares/authtenticatedToken";
+import { authenticateToken } from "../middlewares/authenticatedToken";
 import CollectionsControllers from "../controllers/collectionsControllers";
 import {
     validateCollectionCreate,
@@ -43,7 +43,7 @@ router.put(
 
 //eliminar una colección
 router.delete(
-    "/deteleCollection",
+    ["/deleteCollection", "/deteleCollection"],
     authenticateToken,
     validateCollectionId,
     CollectionsControllers.deleteCollection

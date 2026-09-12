@@ -20,8 +20,8 @@ async function startServer() {
     }
 
     httpServer.listen(PORT, () => {
-        console.log("Enviroment", process.env.NODE_ENV);
-        console.log("Server listen", PORT);
+        console.log("Environment", process.env.NODE_ENV);
+        console.log("Server listening", PORT);
         console.log("API version", API_VERSION);
     });
 

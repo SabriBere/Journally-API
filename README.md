@@ -132,9 +132,10 @@ Required variables:
 The WebSocket server uses the same HTTP server and `PORT` as the REST API. There
 is no separate socket port in the current implementation.
 
-`.env.dev`, `.env.prod`, and other real environment files are ignored by Git.
-Only `.env.example` is committed. Local Docker credentials are intentionally
-non-sensitive and must not be reused in production.
+`.env.dev`, `.env.prod`, `.env.test`, and other real environment files are
+ignored by Git. The committed `.env.example` and `.env.test.example` files
+contain placeholders or local-only Docker credentials, which must not be reused
+in production.
 
 ## Frontend
 
@@ -224,6 +225,9 @@ The Prisma schema defines the following models:
 - `Setting`
 - `Collection`
 - `Post`
+
+Journally calls user-facing content “journal entries”; internally, journal
+entries are represented by the Prisma `Post` model and `/api/post` endpoints.
 
 `Post.description` is a `Json` field. It stores rich editor content in the JSON structure produced by Tiptap, preserving paragraphs, nodes, marks, and formatted text.
 
@@ -339,35 +343,47 @@ The socket verifies that the post belongs to the authenticated user before savin
 ## Project Structure
 
 ```txt
-src/
-├── controllers
-│   ├── collectionsControllers.ts
-│   ├── postControllers.ts
-│   └── usersControllers.ts
-├── db
-│   └── db.ts
-├── middlewares
-│   ├── authtenticatedToken.ts
-│   ├── notFound.ts
-│   ├── postValidation.ts
-│   └── userValidation.ts
-├── routes
-│   ├── colletions.ts
-│   ├── post.ts
-│   ├── routes.ts
-│   └── users.ts
-├── services
-│   ├── collectionServices.ts
-│   ├── postServices.ts
-│   └── usersServices.ts
-├── sockets
-│   └── postSocket.ts
-├── swagger
-│   ├── swagger.ts
-│   └── swaggerEntries.ts
-├── utils
-│   └── auth.ts
-└── index.ts
+.
+├── .github/workflows/ci-cd.yml
+├── src
+│   ├── app.ts
+│   ├── controllers
+│   │   ├── collectionsControllers.ts
+│   │   ├── postControllers.ts
+│   │   └── usersControllers.ts
+│   ├── db/db.ts
+│   ├── middlewares
+│   │   ├── authenticatedToken.ts
+│   │   ├── collectionValidation.ts
+│   │   ├── notFound.ts
+│   │   ├── postValidation.ts
+│   │   ├── queryValidation.ts
+│   │   └── userValidation.ts
+│   ├── routes
+│   │   ├── collections.ts
+│   │   ├── post.ts
+│   │   ├── routes.ts
+│   │   └── users.ts
+│   ├── services
+│   │   ├── collectionServices.ts
+│   │   ├── postServices.ts
+│   │   └── usersServices.ts
+│   ├── sockets/postSocket.ts
+│   ├── swagger
+│   │   ├── swagger.ts
+│   │   └── swaggerEntries.ts
+│   ├── utils/auth.ts
+│   └── index.ts
+├── tests
+│   ├── helpers
+│   │   ├── helperTest.ts
+│   │   └── testDatabase.ts
+│   ├── collection.test.ts
+│   ├── post.test.ts
+│   └── user.test.ts
+├── .env.test.example
+├── compose.test.yaml
+└── jest.config.ts
 ```
 
 The project follows a layered structure:
@@ -398,14 +414,32 @@ Swagger centralizes the OpenAPI documentation and serves the browser UI.
 
 ## Testing
 
-The project includes Jest and Supertest dependencies.
+The REST integration suite uses Jest, `ts-jest`, and Supertest. Tests exercise
+the Express application against PostgreSQL through Prisma and run with one Jest
+worker to avoid interference in the shared test database.
 
-Suggested next tests:
+Shared fixtures live in `tests/helpers/helperTest.ts`.
+`tests/helpers/testDatabase.ts` protects cleanup operations by requiring
+`NODE_ENV=test` and allowing only the `journally_test` and `journally_ci`
+database names.
 
-- Unit tests for services.
-- Integration tests for the main routes.
-- Authentication and validation tests.
-- WebSocket autosave tests.
+To run the suite locally:
+
+```bash
+cp .env.test.example .env.test
+pnpm db:test:start
+pnpm db:test:push
+pnpm test
+pnpm db:test:stop
+```
+
+The tests cover users, posts, and collections, including authentication,
+validation, ownership boundaries, pagination, post CRUD, collection CRUD, and
+collection assignment and deletion behavior.
+
+CI provisions a PostgreSQL 17 service, applies committed Prisma migrations, and
+runs the suite serially with `pnpm test:ci`. WebSocket autosave integration tests
+are not implemented yet and remain the main integration-testing gap.
 
 ## ERD
 
