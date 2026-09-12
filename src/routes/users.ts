@@ -3,7 +3,7 @@ import { validateLogin, validateUser } from "../middlewares/userValidation";
 import {
     authenticateRefresh,
     authenticateToken,
-} from "../middlewares/authtenticatedToken";
+} from "../middlewares/authenticatedToken";
 import UserControllers from "../controllers/usersControllers";
 const router = Router();
 

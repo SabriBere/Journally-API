@@ -1,10 +1,10 @@
 import { Router } from "express";
 const router = Router();
-import postRounter from "./post";
+import postRouter from "./post";
 import usersRouter from "./users";
-import collectionRouter from "./colletions";
+import collectionRouter from "./collections";
 
-router.use("/post", postRounter);
+router.use("/post", postRouter);
 router.use("/users", usersRouter);
 router.use("/collections", collectionRouter);
 

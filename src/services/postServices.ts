@@ -62,7 +62,7 @@ class PostServices {
     }
 
     //no requiere tener una colección creada
-    static async createWithOutCollection(
+    static async createWithoutCollection(
         userId: number,
         body: {
             title: string;
@@ -324,7 +324,7 @@ class PostServices {
         }
     }
 
-    static async eraserPost(userId: number, postId: number) {
+    static async deletePost(userId: number, postId: number) {
         try {
             const deletedPost = await prisma.post.deleteMany({
                 where: {
