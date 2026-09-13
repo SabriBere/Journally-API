@@ -13,12 +13,14 @@ const developmentFormat = winston.format.combine(
     winston.format.colorize(),
     winston.format.timestamp({ format: "HH:mm:ss" }),
     winston.format.errors({ stack: true }),
-    winston.format.printf(({ timestamp, level, message, stack, ...metadata }) => {
-        const details = Object.keys(metadata).length
-            ? ` ${JSON.stringify(metadata)}`
-            : "";
-        return `${timestamp} ${level}: ${stack ?? message}${details}`;
-    })
+    winston.format.printf(
+        ({ timestamp, level, message, stack, ...metadata }) => {
+            const details = Object.keys(metadata).length
+                ? ` ${JSON.stringify(metadata)}`
+                : "";
+            return `${timestamp} ${level}: ${stack ?? message}${details}`;
+        }
+    )
 );
 
 const logger = winston.createLogger({

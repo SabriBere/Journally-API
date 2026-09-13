@@ -46,11 +46,9 @@ jest.mock("../src/loggers/logger", () => ({
 import app from "../src/app";
 import logger from "../src/loggers/logger";
 
-const accessToken = jwt.sign(
-    { userId: 7 },
-    process.env.JWT_SECRET as string,
-    { algorithm: "HS256" }
-);
+const accessToken = jwt.sign({ userId: 7 }, process.env.JWT_SECRET as string, {
+    algorithm: "HS256",
+});
 
 const getCollection = () =>
     request(app)

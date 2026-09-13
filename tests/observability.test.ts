@@ -39,9 +39,7 @@ describe("observability error boundary", () => {
     });
 
     test("captures and logs unexpected errors without exposing details", async () => {
-        const response = await request(app).get(
-            "/__test/observability-error"
-        );
+        const response = await request(app).get("/__test/observability-error");
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual({
