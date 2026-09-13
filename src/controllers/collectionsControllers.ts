@@ -97,22 +97,12 @@ class CollectionsControllers {
         const userId = (req as any).user?.userId;
         const collectionId = Number(req.query.id);
 
-        const { status, error, data } = await CollectionServices.findCollection(
+        const collection = await CollectionServices.findCollection(
             userId,
             collectionId
         );
 
-        if (error) {
-            if (status === 404) {
-                return res.status(404).json({ data });
-            } else {
-                return res
-                    .status(500)
-                    .json({ data: "Error interno del servidor" });
-            }
-        }
-
-        return res.status(200).json({ data });
+        return res.status(200).json({ data: collection });
     }
 }
 

@@ -1,4 +1,5 @@
 import { ErrorRequestHandler } from "express";
+import AppError from "../errors/AppError";
 import logger from "../loggers/logger";
 
 const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
@@ -7,20 +8,21 @@ const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
         return;
     }
 
-    const status = Number(error?.status ?? error?.statusCode ?? 500);
-
-    if (status >= 500) {
-        logger.error("Unexpected request error", {
-            error,
-            method: req.method,
-            path: req.originalUrl,
-            status,
-        });
+    if (error instanceof AppError) {
+        res.status(error.status).json({ data: error.message });
+        return;
     }
 
-    res.status(status).json({
+    logger.error("Unexpected request error", {
+        error,
+        method: req.method,
+        path: req.originalUrl,
+        status: 500,
+    });
+
+    res.status(500).json({
         error: true,
-        data: status >= 500 ? "Error interno del servidor" : error.message,
+        data: "Error interno del servidor",
     });
 };
 

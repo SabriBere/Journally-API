@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/node";
+import AppError from "../errors/AppError";
 
 const configuredSampleRate = Number(process.env.SENTRY_TRACES_SAMPLE_RATE);
 const tracesSampleRate = Number.isFinite(configuredSampleRate)
@@ -19,12 +20,6 @@ export function setupSentryErrorHandler(
     app: Parameters<typeof Sentry.setupExpressErrorHandler>[0]
 ) {
     Sentry.setupExpressErrorHandler(app, {
-        shouldHandleError: (error) => {
-            const candidate = error as {
-                status?: number;
-                statusCode?: number;
-            };
-            return (candidate.status ?? candidate.statusCode ?? 500) >= 500;
-        },
+        shouldHandleError: (error) => !(error instanceof AppError),
     });
 }
