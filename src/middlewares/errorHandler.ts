@@ -1,5 +1,6 @@
 import { ErrorRequestHandler } from "express";
 import AppError from "../errors/AppError";
+import { mapKnownMiddlewareError } from "../errors/middlewareErrors";
 import logger from "../loggers/logger";
 
 const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
@@ -8,8 +9,11 @@ const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
         return;
     }
 
-    if (error instanceof AppError) {
-        res.status(error.status).json({ data: error.message });
+    const expectedError =
+        error instanceof AppError ? error : mapKnownMiddlewareError(error);
+
+    if (expectedError) {
+        res.status(expectedError.status).json({ data: expectedError.message });
         return;
     }
 

@@ -13,37 +13,20 @@ class CollectionsControllers {
     static async createCollection(req: Request, res: Response) {
         if (CollectionsControllers.hasValidationErrors(req, res)) return;
         const userId = (req as any).user?.userId;
-        const { status, error, data } = await CollectionServices.create(
-            req.body,
-            userId
-        );
+        const collection = await CollectionServices.create(req.body, userId);
 
-        if (error) {
-            if (status === 404) {
-                return res.status(404).json({ data });
-            }
-            return res.status(500).json({ data: "Error interno del servidor" });
-        }
-
-        res.status(201).json({ data });
+        res.status(201).json({ data: collection });
     }
 
     static async updateName(req: Request, res: Response) {
         if (CollectionsControllers.hasValidationErrors(req, res)) return;
         const userId = (req as any).user?.userId;
-        const { status, error, data } = await CollectionServices.update(
+        const updatedCollection = await CollectionServices.update(
             req.body,
             userId
         );
 
-        if (error) {
-            if (status === 404) {
-                return res.status(400).json({ data });
-            }
-            return res.status(500).json({ data: "Error interno del servidor" });
-        }
-
-        res.status(200).json({ data });
+        res.status(200).json({ data: updatedCollection });
     }
 
     static async deleteCollection(req: Request, res: Response) {
@@ -51,17 +34,9 @@ class CollectionsControllers {
         const userId = (req as any).user?.userId;
         const collectionId = Number(req.query.id);
 
-        const { status, error, data } =
-            await CollectionServices.deleteCollection(userId, collectionId);
+        await CollectionServices.deleteCollection(userId, collectionId);
 
-        if (error) {
-            if (status === 404) {
-                return res.status(404).json({ data });
-            }
-            return res.status(500).json({ data: "Error interno del servidor" });
-        }
-
-        res.status(204).json({ data });
+        res.status(204).send();
     }
 
     static async listOfCollections(req: Request, res: Response) {
@@ -74,20 +49,13 @@ class CollectionsControllers {
         const orderDirection =
             (req.query.orderDirection as string | undefined) ?? "desc";
 
-        const { status, error, data } = await CollectionServices.allCollections(
+        const data = await CollectionServices.allCollections(
             id,
             page,
             searchText,
             orderField,
             orderDirection
         );
-
-        if (error) {
-            if (status === 404) {
-                return res.status(404).json({ data });
-            }
-            return res.status(500).json({ data: "Error interno del servidor" });
-        }
 
         res.status(200).json({ data });
     }
