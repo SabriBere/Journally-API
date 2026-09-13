@@ -9,6 +9,8 @@ import Swagger from "swagger-jsdoc";
 import SwaggerUi from "swagger-ui-express";
 import swaggerConfig from "./swagger/swagger";
 import { rateLimit } from "express-rate-limit";
+import { setupSentryErrorHandler } from "./loggers/sentry";
+import errorHandler from "./middlewares/errorHandler";
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",").map((origin) =>
     origin.trim()
@@ -98,6 +100,15 @@ if (process.env.NODE_ENV === "development") {
 }
 
 app.use("/api", routes);
+
+if (process.env.NODE_ENV === "test") {
+    app.get("/__test/observability-error", () => {
+        throw new Error("Observability test error");
+    });
+}
+
 app.use(notFound);
+setupSentryErrorHandler(app);
+app.use(errorHandler);
 
 export default app;
