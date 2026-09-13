@@ -1,4 +1,5 @@
 import prisma from "../db/db";
+import AppError from "../errors/AppError";
 
 class CollectionServices {
     static async create(
@@ -155,37 +156,25 @@ class CollectionServices {
     }
 
     static async findCollection(userId: number, collectionId: number) {
-        try {
-            const collectionFound = await prisma.collection.findFirst({
-                where: {
-                    collection_id: collectionId,
-                    user_id: userId,
-                },
-                include: {
-                    posts: true,
-                },
-            });
+        const collectionFound = await prisma.collection.findFirst({
+            where: {
+                collection_id: collectionId,
+                user_id: userId,
+            },
+            include: {
+                posts: true,
+            },
+        });
 
-            if (!collectionFound) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "Colección no encontrada",
-                };
-            }
-
-            return {
-                status: 200,
-                error: false,
-                data: collectionFound,
-            };
-        } catch (error: any) {
-            return {
-                status: 500,
-                error: true,
-                data: error.message,
-            };
+        if (!collectionFound) {
+            throw new AppError(
+                404,
+                "COLLECTION_NOT_FOUND",
+                "Colección no encontrada"
+            );
         }
+
+        return collectionFound;
     }
 }
 
