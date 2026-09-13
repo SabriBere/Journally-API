@@ -10,16 +10,7 @@ class UserControllers {
             return res.status(400).json({ error: true, data: errors.array() });
         }
 
-        const { status, error, data } = await UserService.createUser(req.body);
-        if (error) {
-            if (status === 400) {
-                return res.status(400).json({ data });
-            } else if (status === 409) {
-                return res.status(409).json({ data });
-            } else {
-                return res.status(500).json({ error: true, data });
-            }
-        }
+        const data = await UserService.createUser(req.body);
         res.status(200).json({ data });
     }
 
@@ -28,17 +19,7 @@ class UserControllers {
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: true, data: errors.array() });
         }
-        const { status, error, data } = await UserService.getUser(req.body);
-
-        if (error) {
-            if (status === 401) {
-                return res.status(401).json({ data });
-            } else {
-                return res
-                    .status(500)
-                    .json({ error: true, data: "Error interno del servidor" });
-            }
-        }
+        const data = await UserService.getUser(req.body);
 
         const { accessToken, refreshToken, ...userData } = data;
         res.header("x-access-token", accessToken);
@@ -48,22 +29,8 @@ class UserControllers {
     }
 
     static async refreshToken(req: Request, res: Response) {
-        const { status, error, data } =
-            await UserService.verifyRefreshToken(req);
-
-        if (error) {
-            if (status === 401) {
-                return res.status(401).json({ error: true, data });
-            } else if (status === 403) {
-                return res.status(403).json({ error: true, data });
-            } else {
-                return res
-                    .status(500)
-                    .json({ error: true, data: "Error interno del servidor" });
-            }
-        }
-
-        const { newAccessToken, newRefreshToken, ...user }: any = data;
+        const data = await UserService.verifyRefreshToken(req);
+        const { newAccessToken, newRefreshToken, ...user } = data;
 
         res.header("x-access-token", newAccessToken);
         res.header("x-refresh-token", newRefreshToken);
@@ -78,18 +45,8 @@ class UserControllers {
 
     static async deleteUser(req: Request, res: Response) {
         const id = (req as any).user?.userId;
-        const { status, error, data } = await UserService.eraserUser(id);
-
-        if (error) {
-            if (status === 404) {
-                return res.status(404).json({ data });
-            } else {
-                return res
-                    .status(500)
-                    .json({ error: true, data: "Error interno del servidor" });
-            }
-        }
-        res.status(204).json({ data });
+        await UserService.eraserUser(id);
+        res.status(204).send();
     }
 }
 

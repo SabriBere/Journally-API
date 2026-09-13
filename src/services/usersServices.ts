@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "../db/db";
 import bcrypt from "bcrypt";
 import { createHash } from "crypto";
+import AppError from "../errors/AppError";
 
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const hashToken = (token: string) =>
@@ -18,11 +19,11 @@ class UserService {
         const { email, password, user_name } = body;
 
         if (!user_name) {
-            return {
-                status: 400,
-                error: true,
-                data: "El nombre de usuario es obligatorio",
-            };
+            throw new AppError(
+                400,
+                "USER_NAME_REQUIRED",
+                "El nombre de usuario es obligatorio"
+            );
         }
 
         try {
@@ -33,14 +34,13 @@ class UserService {
             });
 
             if (userExists) {
-                return {
-                    status: 409,
-                    error: true,
-                    data:
-                        userExists.email === email
-                            ? "El email ya está registrado"
-                            : "El nombre de usuario ya está en uso",
-                };
+                throw new AppError(
+                    409,
+                    "USER_ALREADY_EXISTS",
+                    userExists.email === email
+                        ? "El email ya está registrado"
+                        : "El nombre de usuario ya está en uso"
+                );
             }
 
             const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
@@ -52,161 +52,132 @@ class UserService {
                     user_name,
                 },
             });
-            return {
-                status: 201,
-                error: false,
-                data: { userName: user.user_name, email: user.email },
-            };
-        } catch (error: any) {
+            return { userName: user.user_name, email: user.email };
+        } catch (error: unknown) {
             if (
                 error instanceof Prisma.PrismaClientKnownRequestError &&
                 error.code === "P2002"
             ) {
-                return {
-                    status: 409,
-                    error: true,
-                    data: "El email o nombre de usuario ya está registrado",
-                };
+                throw new AppError(
+                    409,
+                    "USER_ALREADY_EXISTS",
+                    "El email o nombre de usuario ya está registrado"
+                );
             }
 
-            return { status: 500, error: true, data: error.message };
+            throw error;
         }
     }
 
     static async getUser(body: { email: string; password: string }) {
-        try {
-            const userFinded = await prisma.user.findFirst({
-                where: {
-                    email: body.email,
-                },
-            });
+        const userFinded = await prisma.user.findFirst({
+            where: {
+                email: body.email,
+            },
+        });
 
-            if (!userFinded) {
-                // Ejecutar bcrypt también para usuarios inexistentes reduce diferencias de tiempo.
-                await bcrypt.compare(
-                    body.password,
-                    "$2b$10$C6UzMDM.H6dfI/f/IKcEe.8LzXbFjM/Gp6VfHqKqVxqTqTqTqTqTq"
-                );
-                return {
-                    status: 401,
-                    error: true,
-                    data: "Credenciales inválidas",
-                };
-            }
-
-            const isMatch = await bcrypt.compare(
+        if (!userFinded) {
+            // Ejecutar bcrypt también para usuarios inexistentes reduce diferencias de tiempo.
+            await bcrypt.compare(
                 body.password,
-                userFinded.password
+                "$2b$10$C6UzMDM.H6dfI/f/IKcEe.8LzXbFjM/Gp6VfHqKqVxqTqTqTqTqTq"
             );
-            if (!isMatch) {
-                return {
-                    status: 401,
-                    error: true,
-                    data: "Credenciales inválidas",
-                };
-            }
-            const accessToken = generateToken({ userId: userFinded?.user_id });
-            const refreshToken = generateRefreshToken({
-                userId: userFinded.user_id,
-            });
-            await prisma.refreshSession.create({
-                data: {
-                    token_hash: hashToken(refreshToken),
-                    expires_at: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-                    user_id: userFinded.user_id,
-                },
-            });
-
-            return {
-                status: 201,
-                error: false,
-                data: {
-                    userId: userFinded.user_id,
-                    user: userFinded.email,
-                    userName: userFinded.user_name,
-                    accessToken,
-                    refreshToken,
-                },
-            };
-        } catch (error: any) {
-            return {
-                status: 500,
-                error: true,
-                data: error.message,
-            };
+            throw new AppError(
+                401,
+                "INVALID_CREDENTIALS",
+                "Credenciales inválidas"
+            );
         }
+
+        const isMatch = await bcrypt.compare(
+            body.password,
+            userFinded.password
+        );
+        if (!isMatch) {
+            throw new AppError(
+                401,
+                "INVALID_CREDENTIALS",
+                "Credenciales inválidas"
+            );
+        }
+        const accessToken = generateToken({ userId: userFinded.user_id });
+        const refreshToken = generateRefreshToken({
+            userId: userFinded.user_id,
+        });
+        await prisma.refreshSession.create({
+            data: {
+                token_hash: hashToken(refreshToken),
+                expires_at: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+                user_id: userFinded.user_id,
+            },
+        });
+
+        return {
+            userId: userFinded.user_id,
+            user: userFinded.email,
+            userName: userFinded.user_name,
+            accessToken,
+            refreshToken,
+        };
     }
 
     static async verifyRefreshToken(req: any) {
-        try {
-            const { userId } = req.user;
-            const presentedToken = req.refreshToken as string;
+        const { userId } = req.user;
+        const presentedToken = req.refreshToken as string;
 
-            const session = await prisma.refreshSession.findUnique({
-                where: { token_hash: hashToken(presentedToken) },
-            });
+        const session = await prisma.refreshSession.findUnique({
+            where: { token_hash: hashToken(presentedToken) },
+        });
 
-            if (
-                !session ||
-                session.user_id !== userId ||
-                session.expires_at <= new Date()
-            ) {
-                return {
-                    status: 403,
-                    error: true,
-                    data: "Refresh token inválido o reutilizado",
-                };
-            }
-
-            const user = await prisma.user.findUnique({
-                where: { user_id: userId },
-            });
-
-            if (!user) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "Usuario no encontrado",
-                };
-            }
-
-            const newAccessToken = generateToken({ userId: user.user_id });
-            const newRefreshToken = generateRefreshToken({
-                userId: user.user_id,
-            });
-
-            await prisma.$transaction([
-                prisma.refreshSession.delete({
-                    where: { session_id: session.session_id },
-                }),
-                prisma.refreshSession.create({
-                    data: {
-                        token_hash: hashToken(newRefreshToken),
-                        expires_at: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
-                        user_id: user.user_id,
-                    },
-                }),
-            ]);
-
-            return {
-                status: 201,
-                error: false,
-                data: {
-                    newAccessToken, //enviar el nuevo token por headers
-                    newRefreshToken,
-                    userId: user.user_id,
-                    user: user.email,
-                    userName: user.user_name,
-                },
-            };
-        } catch (error: any) {
-            console.error("❌ JWT verify error:", error);
-            return {
-                status: 403,
-                error: true,
-                data: "Refresh token inválido o expirado",
-            };
+        if (
+            !session ||
+            session.user_id !== userId ||
+            session.expires_at <= new Date()
+        ) {
+            throw new AppError(
+                403,
+                "INVALID_REFRESH_SESSION",
+                "Refresh token inválido o reutilizado"
+            );
         }
+
+        const user = await prisma.user.findUnique({
+            where: { user_id: userId },
+        });
+
+        if (!user) {
+            throw new AppError(
+                403,
+                "INVALID_REFRESH_SESSION",
+                "Refresh token inválido o reutilizado"
+            );
+        }
+
+        const newAccessToken = generateToken({ userId: user.user_id });
+        const newRefreshToken = generateRefreshToken({
+            userId: user.user_id,
+        });
+
+        await prisma.$transaction([
+            prisma.refreshSession.delete({
+                where: { session_id: session.session_id },
+            }),
+            prisma.refreshSession.create({
+                data: {
+                    token_hash: hashToken(newRefreshToken),
+                    expires_at: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+                    user_id: user.user_id,
+                },
+            }),
+        ]);
+
+        return {
+            newAccessToken,
+            newRefreshToken,
+            userId: user.user_id,
+            user: user.email,
+            userName: user.user_name,
+        };
     }
 
     static async revokeRefreshToken(token: string) {
@@ -216,46 +187,20 @@ class UserService {
     }
 
     static async eraserUser(id: number) {
-        try {
-            const userExists = await prisma.user.findUnique({
-                where: { user_id: id },
-            });
+        const userExists = await prisma.user.findUnique({
+            where: { user_id: id },
+        });
 
-            if (!userExists) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "Usuario no encontrado",
-                };
-            }
-
-            //cuando tenga posteos creados debería ser en cascada el delete
-            const deletedUser = await prisma.user.delete({
-                where: {
-                    user_id: id,
-                },
-            });
-
-            if (!deletedUser) {
-                return {
-                    status: 400,
-                    error: true,
-                    data: "Error al eliminar usuario",
-                };
-            }
-
-            return {
-                status: 204,
-                error: false,
-                data: "Usuario eliminado con exito",
-            };
-        } catch (error: any) {
-            return {
-                status: 500,
-                error: true,
-                data: error.message,
-            };
+        if (!userExists) {
+            throw new AppError(404, "USER_NOT_FOUND", "Usuario no encontrado");
         }
+
+        //cuando tenga posteos creados debería ser en cascada el delete
+        return prisma.user.delete({
+            where: {
+                user_id: id,
+            },
+        });
     }
 }
 
