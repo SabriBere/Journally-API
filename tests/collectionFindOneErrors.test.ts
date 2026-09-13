@@ -117,3 +117,27 @@ describe("GET /api/collections/collectionId error propagation", () => {
         );
     });
 });
+
+describe("GET /api/collections/observability-error", () => {
+    beforeEach(() => {
+        captureException.mockClear();
+        jest.mocked(logger.error).mockClear();
+    });
+
+    test("sends an intentional unexpected error through observability", async () => {
+        const response = await request(app)
+            .get("/api/collections/observability-error")
+            .set("x-access-token", accessToken);
+
+        expect(response.status).toBe(500);
+        expect(response.body).toEqual({
+            error: true,
+            data: "Error interno del servidor",
+        });
+        expect(response.text).not.toContain(
+            "Intentional Sentry verification error"
+        );
+        expect(captureException).toHaveBeenCalledTimes(1);
+        expect(logger.error).toHaveBeenCalledTimes(1);
+    });
+});

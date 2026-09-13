@@ -49,4 +49,13 @@ router.delete(
     CollectionsControllers.deleteCollection
 );
 
+if (
+    process.env.NODE_ENV === "test" ||
+    process.env.SENTRY_TEST_ROUTE_ENABLED === "true"
+) {
+    router.get("/observability-error", authenticateToken, () => {
+        throw new Error("Intentional Sentry verification error");
+    });
+}
+
 export default router;
