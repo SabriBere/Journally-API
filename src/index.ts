@@ -1,3 +1,4 @@
+import "./loggers/sentry";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import app from "./app";
