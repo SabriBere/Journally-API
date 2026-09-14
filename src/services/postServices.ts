@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../db/db";
+import AppError from "../errors/AppError";
 
 type PostDescription = Prisma.InputJsonValue;
 
@@ -14,51 +15,43 @@ class PostServices {
         }
     ) {
         const { title, description } = body;
-        try {
-            const userExists = await prisma.user.findUnique({
-                where: { user_id: userId },
-            });
+        const userExists = await prisma.user.findUnique({
+            where: { user_id: userId },
+        });
 
-            if (!userExists) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "El usuario especificado no existe.",
-                };
-            }
-
-            const collectionExists = await prisma.collection.findFirst({
-                where: { collection_id: collectionId, user_id: userId },
-            });
-
-            if (!collectionExists) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "La colección especificada no existe.",
-                };
-            }
-
-            const postCreated = await prisma.post.create({
-                data: {
-                    title: title.trim(),
-                    description: description as never,
-                    user: {
-                        connect: { user_id: userId },
-                    },
-                    collection: {
-                        connect: { collection_id: collectionId },
-                    },
-                },
-            });
-            return {
-                status: 201,
-                error: false,
-                data: postCreated,
-            };
-        } catch (error: any) {
-            return { status: 500, error: true, data: error.message };
+        if (!userExists) {
+            throw new AppError(
+                404,
+                "USER_NOT_FOUND",
+                "El usuario especificado no existe."
+            );
         }
+
+        const collectionExists = await prisma.collection.findFirst({
+            where: { collection_id: collectionId, user_id: userId },
+        });
+
+        if (!collectionExists) {
+            throw new AppError(
+                404,
+                "COLLECTION_NOT_FOUND",
+                "La colección especificada no existe."
+            );
+        }
+
+        const postCreated = await prisma.post.create({
+            data: {
+                title: title.trim(),
+                description: description as never,
+                user: {
+                    connect: { user_id: userId },
+                },
+                collection: {
+                    connect: { collection_id: collectionId },
+                },
+            },
+        });
+        return postCreated;
     }
 
     //no requiere tener una colección creada
@@ -69,40 +62,32 @@ class PostServices {
             description: PostDescription;
         }
     ) {
-        try {
-            const { title, description } = body;
+        const { title, description } = body;
 
-            const userExists = await prisma.user.findUnique({
-                where: { user_id: userId },
-            });
+        const userExists = await prisma.user.findUnique({
+            where: { user_id: userId },
+        });
 
-            if (!userExists) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "El usuario especificado no existe",
-                };
-            }
-
-            const postCreated = await prisma.post.create({
-                data: {
-                    title: title.trim(),
-                    description: description as never,
-                    user: {
-                        connect: { user_id: userId },
-                    },
-                    collection: {},
-                },
-            });
-
-            return {
-                status: 201,
-                error: false,
-                data: postCreated,
-            };
-        } catch (error: any) {
-            return { status: 500, error: true, data: error.message };
+        if (!userExists) {
+            throw new AppError(
+                404,
+                "USER_NOT_FOUND",
+                "El usuario especificado no existe"
+            );
         }
+
+        const postCreated = await prisma.post.create({
+            data: {
+                title: title.trim(),
+                description: description as never,
+                user: {
+                    connect: { user_id: userId },
+                },
+                collection: {},
+            },
+        });
+
+        return postCreated;
     }
 
     //depende de que haya una colección existente para probar bien
@@ -111,81 +96,61 @@ class PostServices {
         postId: number,
         collectionId: number
     ) {
-        try {
-            //buscar por id el post
-            const postExists = await prisma.post.findFirst({
-                where: { post_id: postId, user_id: userId },
-            });
+        //buscar por id el post
+        const postExists = await prisma.post.findFirst({
+            where: { post_id: postId, user_id: userId },
+        });
 
-            if (!postExists) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "El post buscado no existe",
-                };
-            }
-
-            const collectionExists = await prisma.collection.findFirst({
-                where: {
-                    collection_id: collectionId,
-                    user_id: userId,
-                },
-            });
-
-            if (!collectionExists) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "Colección no encontrada",
-                };
-            }
-
-            const inCollection = await prisma.post.update({
-                where: {
-                    post_id: postId,
-                },
-                data: {
-                    collection: {
-                        connect: { collection_id: collectionId },
-                    },
-                },
-            });
-
-            return {
-                status: 200,
-                error: false,
-                data: inCollection,
-            };
-        } catch (error: any) {
-            return { status: 500, error: true, data: error.message };
+        if (!postExists) {
+            throw new AppError(
+                404,
+                "POST_NOT_FOUND",
+                "El post buscado no existe"
+            );
         }
+
+        const collectionExists = await prisma.collection.findFirst({
+            where: {
+                collection_id: collectionId,
+                user_id: userId,
+            },
+        });
+
+        if (!collectionExists) {
+            throw new AppError(
+                404,
+                "COLLECTION_NOT_FOUND",
+                "Colección no encontrada"
+            );
+        }
+
+        const inCollection = await prisma.post.update({
+            where: {
+                post_id: postId,
+            },
+            data: {
+                collection: {
+                    connect: { collection_id: collectionId },
+                },
+            },
+        });
+
+        return inCollection;
     }
 
     static async onePost(userId: number, postId: number) {
-        try {
-            const postFound = await prisma.post.findFirst({
-                where: {
-                    post_id: postId,
-                    user_id: userId,
-                },
-            });
+        const postFound = await prisma.post.findFirst({
+            where: {
+                post_id: postId,
+                user_id: userId,
+            },
+        });
 
-            if (!postFound) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "Post no encontrado",
-                };
-            }
-
-            return {
-                status: 200,
-                error: false,
-                data: postFound,
-            };
-        } catch (error: any) {
-            return { status: 200, error: true, data: error.message };
+        if (!postFound) {
+            throw new AppError(404, "POST_NOT_FOUND", "Post no encontrado");
         }
+
+        return postFound;
     }
 
     static async autoSavePost(
@@ -265,94 +230,66 @@ class PostServices {
         orderField?: any,
         orderDirection?: string
     ) {
-        try {
-            const pageSize: number = 20;
-            const skip = (page - 1) * pageSize;
+        const pageSize: number = 20;
+        const skip = (page - 1) * pageSize;
 
-            const userExists = await prisma.user.findUnique({
-                where: { user_id: id },
-            });
+        const userExists = await prisma.user.findUnique({
+            where: { user_id: id },
+        });
 
-            if (!userExists) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "Usuario no encontrado",
-                };
-            }
-
-            const totalItems = await prisma.post.count({
-                where: {
-                    user_id: id,
-                    title: {
-                        contains: searchText,
-                        mode: "insensitive",
-                    },
-                },
-                orderBy: {
-                    [orderField]: orderDirection,
-                },
-            });
-            const totalPages = Math.ceil(totalItems / pageSize);
-
-            const userPost = await prisma.post.findMany({
-                where: {
-                    user_id: id,
-                    title: {
-                        contains: searchText,
-                        mode: "insensitive",
-                    },
-                },
-                include: {
-                    collection: true,
-                },
-                orderBy: {
-                    [orderField]: orderDirection,
-                },
-                skip,
-                take: pageSize,
-            });
-
-            //ver cómo devolver toda la data necesaria para el frontend
-            return {
-                status: 200,
-                error: false,
-                data: { userPost, totalPages },
-            };
-        } catch (error: any) {
-            return { status: 500, error: true, data: error.message };
+        if (!userExists) {
+            throw new AppError(404, "USER_NOT_FOUND", "Usuario no encontrado");
         }
+
+        const totalItems = await prisma.post.count({
+            where: {
+                user_id: id,
+                title: {
+                    contains: searchText,
+                    mode: "insensitive",
+                },
+            },
+            orderBy: {
+                [orderField]: orderDirection,
+            },
+        });
+        const totalPages = Math.ceil(totalItems / pageSize);
+
+        const userPost = await prisma.post.findMany({
+            where: {
+                user_id: id,
+                title: {
+                    contains: searchText,
+                    mode: "insensitive",
+                },
+            },
+            include: {
+                collection: true,
+            },
+            orderBy: {
+                [orderField]: orderDirection,
+            },
+            skip,
+            take: pageSize,
+        });
+
+        //ver cómo devolver toda la data necesaria para el frontend
+        return { userPost, totalPages };
     }
 
     static async deletePost(userId: number, postId: number) {
-        try {
-            const deletedPost = await prisma.post.deleteMany({
-                where: {
-                    post_id: postId,
-                    user_id: userId,
-                },
-            });
+        const deletedPost = await prisma.post.deleteMany({
+            where: {
+                post_id: postId,
+                user_id: userId,
+            },
+        });
 
-            if (deletedPost.count === 0) {
-                return {
-                    status: 404,
-                    error: true,
-                    data: "Post no encontrado",
-                };
-            }
-
-            return {
-                status: 204,
-                error: false,
-                data: deletedPost,
-            };
-        } catch (error: any) {
-            return {
-                status: 500,
-                error: true,
-                data: error.message,
-            };
+        if (deletedPost.count === 0) {
+            throw new AppError(404, "POST_NOT_FOUND", "Post no encontrado");
         }
+
+        return deletedPost;
     }
 }
 
