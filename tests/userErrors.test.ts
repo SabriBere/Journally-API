@@ -16,6 +16,7 @@ const bcryptCompare = jest.fn<() => Promise<boolean>>();
 const bcryptHash = jest.fn<() => Promise<string>>();
 const captureException = jest.fn();
 const observabilityInfo = jest.fn();
+const observabilityWarn = jest.fn();
 
 jest.mock("../src/db/db", () => ({
     __esModule: true,
@@ -77,7 +78,7 @@ jest.mock("../src/loggers/observabilityLogger", () => ({
     __esModule: true,
     default: {
         info: observabilityInfo,
-        warn: jest.fn(),
+        warn: observabilityWarn,
     },
 }));
 
@@ -126,6 +127,7 @@ describe("POST /api/users/login error propagation", () => {
         bcryptCompare.mockReset();
         bcryptHash.mockReset();
         captureException.mockClear();
+        observabilityWarn.mockClear();
         jest.mocked(logger.error).mockClear();
     });
 
@@ -391,6 +393,7 @@ describe("POST /api/users/refresh error propagation", () => {
         userFindUnique.mockReset();
         transaction.mockReset();
         captureException.mockClear();
+        observabilityWarn.mockClear();
         jest.mocked(logger.error).mockClear();
     });
 
@@ -445,7 +448,6 @@ describe("POST /api/users/refresh error propagation", () => {
             "expired",
             { ...validSession, expires_at: new Date(Date.now() - 60_000) },
         ],
-        ["owned by another user", { ...validSession, user_id: 99 }],
     ])(
         "rejects a %s refresh session without reporting it",
         async (_name, session) => {
@@ -459,8 +461,38 @@ describe("POST /api/users/refresh error propagation", () => {
             });
             expect(captureException).not.toHaveBeenCalled();
             expect(logger.error).not.toHaveBeenCalled();
+            expect(observabilityWarn).not.toHaveBeenCalled();
         }
     );
+
+    test("logs a confirmed refresh session identity mismatch once", async () => {
+        refreshSessionFindUnique.mockResolvedValue({
+            ...validSession,
+            user_id: 99,
+        });
+
+        const response = await refresh();
+
+        expect(response.status).toBe(403);
+        expect(response.body).toEqual({
+            data: "Refresh token inválido o reutilizado",
+        });
+        expect(observabilityWarn).toHaveBeenCalledTimes(1);
+        expect(observabilityWarn).toHaveBeenCalledWith(
+            "refresh_session_identity_mismatch",
+            {
+                userId: 7,
+                operation: "refresh_token",
+                status: "rejected",
+                reasonCode: "SESSION_USER_MISMATCH",
+            }
+        );
+        expect(JSON.stringify(observabilityWarn.mock.calls)).not.toContain(
+            refreshToken
+        );
+        expect(captureException).not.toHaveBeenCalled();
+        expect(logger.error).not.toHaveBeenCalled();
+    });
 
     test("treats a missing user as an invalid session without reporting it", async () => {
         refreshSessionFindUnique.mockResolvedValue(validSession);
@@ -485,6 +517,7 @@ describe("POST /api/users/refresh error propagation", () => {
             databaseError,
             "/api/users/refresh"
         );
+        expect(observabilityWarn).not.toHaveBeenCalled();
     });
 
     test("preserves and reports a user lookup error", async () => {
