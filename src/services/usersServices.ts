@@ -180,8 +180,8 @@ class UserService {
         };
     }
 
-    static async revokeRefreshToken(token: string) {
-        await prisma.refreshSession.deleteMany({
+    static revokeRefreshToken(token: string) {
+        return prisma.refreshSession.deleteMany({
             where: { token_hash: hashToken(token) },
         });
     }

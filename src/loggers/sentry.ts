@@ -12,6 +12,7 @@ Sentry.init({
     enabled: Boolean(process.env.SENTRY_DSN) && process.env.NODE_ENV !== "test",
     environment:
         process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
+    enableLogs: true,
     // release: process.env.VERCEL_GIT_COMMIT_SHA,
     sendDefaultPii: false,
     tracesSampleRate,

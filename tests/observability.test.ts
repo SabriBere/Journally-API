@@ -3,9 +3,15 @@ import express from "express";
 import request from "supertest";
 
 const captureException = jest.fn();
+const sentryLogInfo = jest.fn();
+const sentryLogWarn = jest.fn();
 
 jest.mock("@sentry/node", () => ({
     init: jest.fn(),
+    logger: {
+        info: sentryLogInfo,
+        warn: sentryLogWarn,
+    },
     setupExpressErrorHandler: jest.fn(
         (
             app: { use: (middleware: unknown) => void },
@@ -38,6 +44,7 @@ jest.mock("../src/loggers/logger", () => ({
 import app from "../src/app";
 import AppError from "../src/errors/AppError";
 import logger from "../src/loggers/logger";
+import observabilityLogger from "../src/loggers/observabilityLogger";
 import { setupSentryErrorHandler } from "../src/loggers/sentry";
 import errorHandler from "../src/middlewares/errorHandler";
 
@@ -54,6 +61,8 @@ const createBoundaryApp = (error: Error) => {
 describe("observability error boundary", () => {
     beforeEach(() => {
         captureException.mockClear();
+        sentryLogInfo.mockClear();
+        sentryLogWarn.mockClear();
         jest.mocked(logger.error).mockClear();
     });
 
@@ -76,6 +85,8 @@ describe("observability error boundary", () => {
                 status: 500,
             })
         );
+        expect(sentryLogInfo).not.toHaveBeenCalled();
+        expect(sentryLogWarn).not.toHaveBeenCalled();
     });
 
     test("returns 400 for malformed JSON without reporting it", async () => {
@@ -162,5 +173,53 @@ describe("observability error boundary", () => {
         });
         expect(captureException).not.toHaveBeenCalled();
         expect(logger.error).not.toHaveBeenCalled();
+    });
+});
+
+describe("observabilityLogger", () => {
+    beforeEach(() => {
+        sentryLogInfo.mockClear();
+        sentryLogWarn.mockClear();
+    });
+
+    test("delegates info with common and additional metadata", () => {
+        observabilityLogger.info("selected_application_event", {
+            userId: 7,
+            operation: "test_operation",
+            status: "completed",
+        });
+
+        expect(sentryLogInfo).toHaveBeenCalledTimes(1);
+        expect(sentryLogInfo).toHaveBeenCalledWith(
+            "selected_application_event",
+            {
+                service: "journally-api",
+                environment:
+                    process.env.VERCEL_ENV ??
+                    process.env.NODE_ENV ??
+                    "development",
+                userId: 7,
+                operation: "test_operation",
+                status: "completed",
+            }
+        );
+        expect(sentryLogWarn).not.toHaveBeenCalled();
+    });
+
+    test("delegates warn with common and additional metadata", () => {
+        observabilityLogger.warn("selected_warning_event", {
+            entityId: 11,
+            status: "rejected",
+        });
+
+        expect(sentryLogWarn).toHaveBeenCalledTimes(1);
+        expect(sentryLogWarn).toHaveBeenCalledWith("selected_warning_event", {
+            service: "journally-api",
+            environment:
+                process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
+            entityId: 11,
+            status: "rejected",
+        });
+        expect(sentryLogInfo).not.toHaveBeenCalled();
     });
 });
