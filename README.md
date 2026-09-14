@@ -16,6 +16,7 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 - [Database](#database)
 - [Swagger Documentation](#swagger-documentation)
 - [Entry WebSocket](#entry-websocket)
+- [Observability](#observability)
 - [Project Structure](#project-structure)
 - [Testing](#testing)
 - [ERD](#erd)
@@ -46,6 +47,9 @@ The API is built with **Node.js**, **Express**, **TypeScript**, **Prisma**, and 
 - bcrypt
 - Swagger/OpenAPI
 - ws
+- Sentry — error tracking, tracing, and selective operational logs
+- Winston — structured application and error logging
+- Vercel — deployment and runtime log visibility
 - Jest + Supertest
 
 ## Requirements
@@ -96,6 +100,9 @@ JWT_REFRESH_SECRET=replace_with_a_local_refresh_token_secret
 
 SALT_ROUND=10
 ALLOWED_ORIGINS=http://localhost:3000
+
+SENTRY_DSN=
+SENTRY_TRACES_SAMPLE_RATE=0.1
 ```
 
 Production example:
@@ -113,21 +120,26 @@ JWT_REFRESH_SECRET=replace_with_a_secure_refresh_secret
 
 SALT_ROUND=10
 ALLOWED_ORIGINS=https://your-frontend-domain.com
+
+SENTRY_DSN=replace_with_your_sentry_dsn
+SENTRY_TRACES_SAMPLE_RATE=0.1
 ```
 
-Required variables:
+Configuration variables:
 
-| Variable             | Purpose                                                                         |
-| -------------------- | ------------------------------------------------------------------------------- |
-| `NODE_ENV`           | Enables development-only behavior such as Swagger UI when set to `development`. |
-| `PORT`               | HTTP and WebSocket server port. Defaults to `8080`.                             |
-| `SERVER`             | Hostname displayed in the local Swagger server URL.                             |
-| `ALLOWED_ORIGINS`    | Comma-separated frontend origins accepted by CORS.                              |
-| `SALT_ROUND`         | bcrypt work factor used when hashing passwords.                                 |
-| `DATABASE_URL`       | PostgreSQL connection used by the API runtime.                                  |
-| `DIRECT_URL`         | Direct PostgreSQL connection used by Prisma migrations.                         |
-| `JWT_SECRET`         | Secret used to sign 15-minute access tokens.                                    |
-| `JWT_REFRESH_SECRET` | Independent secret used to sign 30-day refresh tokens.                          |
+| Variable                    | Purpose                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `NODE_ENV`                  | Enables development-only behavior such as Swagger UI when set to `development`. |
+| `PORT`                      | HTTP and WebSocket server port. Defaults to `8080`.                             |
+| `SERVER`                    | Hostname displayed in the local Swagger server URL.                             |
+| `ALLOWED_ORIGINS`           | Comma-separated frontend origins accepted by CORS.                              |
+| `SALT_ROUND`                | bcrypt work factor used when hashing passwords.                                 |
+| `DATABASE_URL`              | PostgreSQL connection used by the API runtime.                                  |
+| `DIRECT_URL`                | Direct PostgreSQL connection used by Prisma migrations.                         |
+| `JWT_SECRET`                | Secret used to sign 15-minute access tokens.                                    |
+| `JWT_REFRESH_SECRET`        | Independent secret used to sign 30-day refresh tokens.                          |
+| `SENTRY_DSN`                | Optional Sentry project DSN. Sentry is disabled when this value is absent.      |
+| `SENTRY_TRACES_SAMPLE_RATE` | Optional Sentry trace sampling rate. Defaults to `0.1`.                         |
 
 The WebSocket server uses the same HTTP server and `PORT` as the REST API. There
 is no separate socket port in the current implementation.
@@ -340,6 +352,68 @@ Error response:
 
 The socket verifies that the post belongs to the authenticated user before saving changes.
 
+## Observability
+
+Journally API separates observability responsibilities to keep signals useful
+and avoid reporting the same event through every tool:
+
+```mermaid
+flowchart TD
+    A[Application] --> B[Expected error]
+    A --> C[Unexpected error]
+    A --> D[Strategic event]
+    B --> E[AppError or known middleware error]
+    E --> F[Safe HTTP 4xx]
+    C --> G[Sentry Issue]
+    C --> H[Winston]
+    H --> I[Vercel Runtime Logs]
+    C --> J[Generic HTTP 500]
+    D --> K[Sentry Logs]
+```
+
+Both Winston and Sentry attach the current environment using Vercel's
+environment when available, then `NODE_ENV`, with `development` as the fallback.
+
+### Error tracking
+
+Expected domain failures use `AppError` and return a safe HTTP 4xx response
+without creating a Sentry Issue. Known JSON parser and body-processing failures
+are classified through a closed mapping and follow the same safe 4xx path.
+
+Unexpected exceptions reach the centralized Express error boundary. Sentry
+records the original exception as an Issue with its stack trace, Winston writes
+one structured error to the console for Vercel Runtime Logs, and the client
+receives a generic HTTP 500 response. Internal exception messages are not
+included in that response.
+
+### Application logging
+
+Winston provides the API's general technical and error logging independently of
+Sentry Logs. It writes through a console transport, which makes the output
+available in Vercel Runtime Logs. Development output is human-readable,
+production output is structured JSON, and logging is silent during tests.
+
+### Selective Sentry Logs
+
+Sentry Logs is reserved for low-frequency operational or security-relevant
+events which do not represent unexpected exceptions. It is not an access
+logger, a replacement for Winston, a mirror of console output, or a duplicate
+of Sentry Issues.
+
+The currently instrumented events are:
+
+- `user_session_revoked`: logout removed a persisted refresh session.
+- `refresh_session_identity_mismatch`: a valid refresh request referenced a
+  persisted session owned by a different user identity.
+- `websocket_message_rate_limited`: an authenticated WebSocket connection
+  exceeded the autosave message limit.
+
+These events use minimal structured metadata such as operation, status, reason
+code, count, and transport when relevant. The Sentry SDK is configured with
+`sendDefaultPii: false`. The instrumentation is designed not to add passwords,
+JWTs, refresh tokens or their hashes, authorization headers, cookies, complete
+request bodies, or journal-entry content to these events.
+
 ## Project Structure
 
 ```txt
@@ -352,9 +426,17 @@ The socket verifies that the post belongs to the authenticated user before savin
 │   │   ├── postControllers.ts
 │   │   └── usersControllers.ts
 │   ├── db/db.ts
+│   ├── errors
+│   │   ├── AppError.ts
+│   │   └── middlewareErrors.ts
+│   ├── loggers
+│   │   ├── logger.ts
+│   │   ├── observabilityLogger.ts
+│   │   └── sentry.ts
 │   ├── middlewares
 │   │   ├── authenticatedToken.ts
 │   │   ├── collectionValidation.ts
+│   │   ├── errorHandler.ts
 │   │   ├── notFound.ts
 │   │   ├── postValidation.ts
 │   │   ├── queryValidation.ts
@@ -379,8 +461,13 @@ The socket verifies that the post belongs to the authenticated user before savin
 │   │   ├── helperTest.ts
 │   │   └── testDatabase.ts
 │   ├── collection.test.ts
+│   ├── collectionFindOneErrors.test.ts
+│   ├── observability.test.ts
 │   ├── post.test.ts
-│   └── user.test.ts
+│   ├── postErrors.test.ts
+│   ├── postSocket.test.ts
+│   ├── user.test.ts
+│   └── userErrors.test.ts
 ├── .env.test.example
 ├── compose.test.yaml
 └── jest.config.ts
@@ -398,7 +485,9 @@ Controllers receive Express requests, read `req.body`, `req.query`, or `req.para
 
 ### Services
 
-Services contain the main business logic. They check entity ownership and existence, prepare data, run Prisma operations, and normalize response payloads.
+Services contain the main business logic. They check entity ownership and
+existence, prepare data, run Prisma operations, and raise domain errors when
+expected business rules are not satisfied.
 
 ### Prisma / DB
 
@@ -435,11 +524,15 @@ pnpm db:test:stop
 
 The tests cover users, posts, and collections, including authentication,
 validation, ownership boundaries, pagination, post CRUD, collection CRUD, and
-collection assignment and deletion behavior.
+collection assignment and deletion behavior. Observability tests also verify
+the classification of expected and unexpected errors, propagation of original
+exceptions, selective Sentry capture and application events, and the absence of
+duplicate reporting for expected failures.
 
 CI provisions a PostgreSQL 17 service, applies committed Prisma migrations, and
-runs the suite serially with `pnpm test:ci`. WebSocket autosave integration tests
-are not implemented yet and remain the main integration-testing gap.
+runs the suite serially with `pnpm test:ci`. The WebSocket message-limit behavior
+has focused automated coverage; full WebSocket autosave integration testing
+remains a gap.
 
 ## ERD
 
