@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import UserService from "../services/usersServices";
+import observabilityLogger from "../loggers/observabilityLogger";
 
 class UserControllers {
     static async create(req: Request, res: Response) {
@@ -39,7 +40,19 @@ class UserControllers {
     }
 
     static async logout(req: Request, res: Response) {
-        await UserService.revokeRefreshToken((req as any).refreshToken);
+        const revokedSessions = await UserService.revokeRefreshToken(
+            (req as any).refreshToken
+        );
+
+        if (revokedSessions.count > 0) {
+            observabilityLogger.info("user_session_revoked", {
+                userId: (req as any).user?.userId,
+                operation: "logout",
+                status: "completed",
+                count: revokedSessions.count,
+            });
+        }
+
         return res.status(204).send();
     }
 

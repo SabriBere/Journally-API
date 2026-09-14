@@ -15,6 +15,7 @@ const transaction = jest.fn<() => Promise<unknown>>();
 const bcryptCompare = jest.fn<() => Promise<boolean>>();
 const bcryptHash = jest.fn<() => Promise<string>>();
 const captureException = jest.fn();
+const observabilityInfo = jest.fn();
 
 jest.mock("../src/db/db", () => ({
     __esModule: true,
@@ -70,6 +71,14 @@ jest.mock("@sentry/node", () => ({
 jest.mock("../src/loggers/logger", () => ({
     __esModule: true,
     default: { error: jest.fn() },
+}));
+
+jest.mock("../src/loggers/observabilityLogger", () => ({
+    __esModule: true,
+    default: {
+        info: observabilityInfo,
+        warn: jest.fn(),
+    },
 }));
 
 import app from "../src/app";
@@ -517,6 +526,7 @@ describe("POST /api/users/logout error propagation", () => {
 
     beforeEach(() => {
         refreshSessionDeleteMany.mockReset();
+        observabilityInfo.mockClear();
         captureException.mockClear();
         jest.mocked(logger.error).mockClear();
     });
@@ -528,8 +538,27 @@ describe("POST /api/users/logout error propagation", () => {
 
         expect(response.status).toBe(204);
         expect(response.text).toBe("");
+        expect(observabilityInfo).toHaveBeenCalledTimes(1);
+        expect(observabilityInfo).toHaveBeenCalledWith("user_session_revoked", {
+            userId: 7,
+            operation: "logout",
+            status: "completed",
+            count: 1,
+        });
+        expect(JSON.stringify(observabilityInfo.mock.calls)).not.toContain(
+            refreshToken
+        );
         expect(captureException).not.toHaveBeenCalled();
         expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    test("does not emit a log when no persisted session was revoked", async () => {
+        refreshSessionDeleteMany.mockResolvedValue({ count: 0 });
+
+        const response = await logout();
+
+        expect(response.status).toBe(204);
+        expect(observabilityInfo).not.toHaveBeenCalled();
     });
 
     test("rejects an invalid token without reporting it", async () => {
@@ -542,6 +571,7 @@ describe("POST /api/users/logout error propagation", () => {
         });
         expect(captureException).not.toHaveBeenCalled();
         expect(logger.error).not.toHaveBeenCalled();
+        expect(observabilityInfo).not.toHaveBeenCalled();
     });
 
     test("preserves and reports a Prisma revocation error", async () => {
@@ -553,5 +583,6 @@ describe("POST /api/users/logout error propagation", () => {
             databaseError,
             "/api/users/logout"
         );
+        expect(observabilityInfo).not.toHaveBeenCalled();
     });
 });
