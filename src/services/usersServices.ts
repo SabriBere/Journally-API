@@ -4,6 +4,7 @@ import prisma from "../db/db";
 import bcrypt from "bcrypt";
 import { createHash } from "crypto";
 import AppError from "../errors/AppError";
+import observabilityLogger from "../loggers/observabilityLogger";
 
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const hashToken = (token: string) =>
@@ -129,11 +130,21 @@ class UserService {
             where: { token_hash: hashToken(presentedToken) },
         });
 
-        if (
-            !session ||
-            session.user_id !== userId ||
-            session.expires_at <= new Date()
-        ) {
+        if (!session || session.expires_at <= new Date()) {
+            throw new AppError(
+                403,
+                "INVALID_REFRESH_SESSION",
+                "Refresh token inválido o reutilizado"
+            );
+        }
+
+        if (session.user_id !== userId) {
+            observabilityLogger.warn("refresh_session_identity_mismatch", {
+                userId,
+                operation: "refresh_token",
+                status: "rejected",
+                reasonCode: "SESSION_USER_MISMATCH",
+            });
             throw new AppError(
                 403,
                 "INVALID_REFRESH_SESSION",

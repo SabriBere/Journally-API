@@ -3,6 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { Prisma } from "@prisma/client";
 import { RawData, WebSocket, WebSocketServer } from "ws";
 import PostServices from "../services/postServices";
+import observabilityLogger from "../loggers/observabilityLogger";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -155,6 +156,7 @@ export function setupEntrySocket(wss: WebSocketServer) {
 
         let messageCount = 0;
         let windowStartedAt = Date.now();
+        let rateLimitReported = false;
 
         socket.on("message", async (rawMessage) => {
             try {
@@ -165,6 +167,20 @@ export function setupEntrySocket(wss: WebSocketServer) {
                 }
                 messageCount += 1;
                 if (messageCount > 20) {
+                    if (!rateLimitReported) {
+                        rateLimitReported = true;
+                        observabilityLogger.warn(
+                            "websocket_message_rate_limited",
+                            {
+                                userId,
+                                operation: "autosave",
+                                status: "rejected",
+                                reasonCode: "MESSAGE_RATE_LIMIT_EXCEEDED",
+                                count: messageCount,
+                                transport: "websocket",
+                            }
+                        );
+                    }
                     socket.close(1008, "Límite de mensajes excedido");
                     return;
                 }
